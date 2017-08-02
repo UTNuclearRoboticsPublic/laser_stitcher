@@ -1,0 +1,31 @@
+
+<launch>
+
+	<node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+
+	<node
+      name    = "lidar_servo_manager"
+      pkg     = "laser_stitcher"
+      type    = "lidar_servo_manager"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+    
+    <node
+      name    = "laser_stitcher_client"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher_client"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+
+</launch>

@@ -1,0 +1,8 @@
+
+float32 min_angle
+float32 max_angle
+bool external_angle_sensing
+
+---
+
+sensor_msgs/PointCloud2 output_cloud
