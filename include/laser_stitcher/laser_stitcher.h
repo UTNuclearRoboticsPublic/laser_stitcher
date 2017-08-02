@@ -10,6 +10,7 @@
 #include <laser_geometry/laser_geometry.h>
 #include <tf/transform_listener.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <rosbag/bag.h>
 
 class LaserStitcher
 {
@@ -22,6 +23,8 @@ private:
 	ros::Publisher cloud_pub_;
 
 	bool is_running_;
+	bool save_data_;
+	std::string bag_name_;
 	std::string target_frame_;
 	sensor_msgs::PointCloud2 summed_pointcloud_;
 
