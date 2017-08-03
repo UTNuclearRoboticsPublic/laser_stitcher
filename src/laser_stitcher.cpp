@@ -42,7 +42,7 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 	  	}
 
 	  	sensor_msgs::PointCloud2 new_planar_cloud;
-	  	scan_converter_.transformLaserScanToPointCloud("/base_link", *scan_in, new_planar_cloud, listener_);
+	  	scan_converter_.transformLaserScanToPointCloud(target_frame_, *scan_in, new_planar_cloud, listener_);
 
 	  	sensor_msgs::PointCloud2 new_summed_cloud;
 	  	const sensor_msgs::PointCloud2 current_summed_cloud = summed_pointcloud_;
@@ -85,6 +85,11 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 
 	is_running_ = is_running->data;
 
+}
+
+void LaserStitcher::checkFrameChange()
+{
+	
 }
 
 int main(int argc, char** argv)
