@@ -3,33 +3,40 @@
 #define LIDAR_UR5_MANAGER
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include "laser_stitcher/stationary_scan.h"
-#include <std_msgs/Float32.h>
+#include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <sensor_msgs/JointState.h>
 
 class LIDARUR5Manager
 {
 public: 
-public: 
 	LIDARUR5Manager();
 	bool stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res);
-	void angleCallback(const std_msgs::Float32::ConstPtr& angle);
+	void jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states);
+	bool updateJoints();
 private:
 	float max_angle_;
 	float min_angle_;
-	float angle_step_;
-	float servo_angle_;
+	float wrist_speed_;
 	float wait_time_;
+	float callbacks_received_;
+	float correct_callbacks_;
+	float wrist_angle_;
+	sensor_msgs::JointState joint_states_;
 
 	std::string lidar_frame_name_;
 	std::string parent_frame_name_;
 
 	ros::NodeHandle nh_;
-	ros::Publisher ur5_script_pub_;
+	ros::NodeHandle joint_state_nh_;
+	ros::CallbackQueue joint_state_queue_;
+	ros::Publisher urscript_pub_;
 	ros::Publisher scanning_state_pub_;
-	ros::Subscriber angle_input_;
+	ros::Subscriber joint_state_sub_;
 };
 
 #endif //LIDAR_UR5_MANAGER

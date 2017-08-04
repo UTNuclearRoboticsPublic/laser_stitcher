@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "laser_stitcher");
+	ros::init(argc, argv, "laser_stitcher_client");
 
 	ros::NodeHandle nh;
 	ros::ServiceClient client = nh.serviceClient<laser_stitcher::stationary_scan>("laser_stitcher/stationary_scan");
@@ -21,6 +21,8 @@ int main(int argc, char** argv)
 		else
 			ROS_ERROR_STREAM("Successfully called service - pointcloud output size is " << scan_srv.response.output_cloud.height*scan_srv.response.output_cloud.width << ".");
 		ros::Duration(0.2).sleep();
+
+		break;
 	}
 
 }	

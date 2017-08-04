@@ -161,6 +161,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(lidar_ur5_manager src/lidar_ur5_manager.cpp)
+add_dependencies(
+   lidar_ur5_manager
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  lidar_ur5_manager
+  ${catkin_LIBRARIES}
+)
+
 add_executable(laser_stitcher_client src/laser_stitcher_client.cpp)
 add_dependencies(
    laser_stitcher_client
@@ -171,7 +182,6 @@ target_link_libraries(
   laser_stitcher_client
   ${catkin_LIBRARIES}
 )
-
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
