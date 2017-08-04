@@ -1,0 +1,14 @@
+
+laser_stitcher:
+  target_frame:             map
+  laser_topic:              hokuyo_scan
+  finished_topic:           laser_stitcher/scanning_state
+  pointcloud_topic:         laser_stitcher/output_cloud
+  sleepy_time:              0.1
+  publish_after_updating:   true
+  publishing_throttle:      1
+  save_data:                true
+  bag_name:                 stitched_pointcloud
+  should_check_movement:    true
+  distance_threshold:       0.02
+  angle_threshold:          0.05

@@ -1,6 +1,8 @@
 
 <launch>
 
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/lidar_ur5_manager.yaml"/>
+
 	<node
       name    = "laser_stitcher"
       pkg     = "laser_stitcher"

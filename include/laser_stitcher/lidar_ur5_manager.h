@@ -28,6 +28,9 @@ private:
 	float wrist_angle_;
 	sensor_msgs::JointState joint_states_;
 
+	bool fixed_start_state_;
+	std::vector<float> start_state_;
+
 	std::string lidar_frame_name_;
 	std::string parent_frame_name_;
 

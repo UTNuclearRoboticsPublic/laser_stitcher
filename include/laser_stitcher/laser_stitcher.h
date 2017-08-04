@@ -42,8 +42,6 @@ private:
 
 	laser_geometry::LaserProjection scan_converter_;
 	tf::TransformListener listener_;
-	//tf2_ros::Buffer tfBuffer_;
-	//tf2::BufferCore buffer_core_;
 	tf::StampedTransform last_transform_;
 
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in);

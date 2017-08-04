@@ -4,11 +4,11 @@
 LIDARUR5Manager::LIDARUR5Manager()
 {
 	std::string urscript_command_topic;
-	nh_.param<std::string>("LIDARUR5Manager/angle_command_topic", urscript_command_topic, "left_ur5_controller/left_ur5_URScript");
+	nh_.param<std::string>("lidar_ur5_manager/angle_command_topic", urscript_command_topic, "right_ur5_controller/right_ur5_URScript");
 	urscript_pub_ = nh_.advertise<std_msgs::String>(urscript_command_topic, 1);
 	
 	std::string scanning_state_topic;
-	nh_.param<std::string>("LIDARUR5Manager/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
+	nh_.param<std::string>("lidar_ur5_manager/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 	
 	// Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
@@ -16,8 +16,16 @@ LIDARUR5Manager::LIDARUR5Manager()
 	joint_state_sub_ = joint_state_nh_.subscribe<sensor_msgs::JointState>("joint_states", 5, &LIDARUR5Manager::jointStateCallback, this);  
 
 	std::string service_name;
-	nh_.param<std::string>("LIDARUR5Manager/service_name", service_name, "laser_stitcher/stationary_scan");
+	nh_.param<std::string>("lidar_ur5_manager/service_name", service_name, "laser_stitcher/stationary_scan");
 	ros::ServiceServer scanning_server = nh_.advertiseService(service_name, &LIDARUR5Manager::stationaryScan, this);
+
+	nh_.param<bool>("lidar_ur5_manager/fixed_start_pose", fixed_start_state_, false);
+	if(fixed_start_state_)
+		if(!nh_.getParam("lidar_ur5_manager/start_pose", start_state_))
+		{
+			ROS_WARN_STREAM("[LIDARUR5Manager] Told to use a fixed_start_pose, but none exists on parameter server. Defaulting to NOT use a fixed start pose.");
+			fixed_start_state_ = false;
+		}
 
 	wrist_speed_ = 0.1; 			// radians/s? I think...
 	wait_time_ = 0.01; 		// seconds
@@ -35,7 +43,10 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 
 	// Move wrist to start position:
 	char start_cmd[200];
-	sprintf(start_cmd, "speedj([%f, %f, %f, %f, %f, %f], 0.2, 0.1)", joint_states_.position[0], joint_states_.position[1], joint_states_.position[2], joint_states_.position[3], joint_states_.position[4], min_angle_);
+	if(fixed_start_state_)
+		sprintf(start_cmd, "movej([%f, %f, %f, %f, %f, %f], 0.2, 0.1)", start_state_[0], start_state_[1], start_state_[2], start_state_[3], start_state_[4], start_state_[5]);	
+	else
+		sprintf(start_cmd, "movej([%f, %f, %f, %f, %f, %f], 0.2, 0.1)", joint_states_.position[0], joint_states_.position[1], joint_states_.position[2], joint_states_.position[3], joint_states_.position[4], min_angle_);
 	ROS_DEBUG_STREAM("[LIDARUR5Manager] Starting command:  " << start_cmd);
 	std_msgs::String start_msg;
 	start_msg.data = start_cmd;
@@ -89,7 +100,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 void LIDARUR5Manager::jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states)
 {
 	callbacks_received_++;
-	if(joint_states->name[0] == "left_ur5_shoulder_pan_joint")
+	if(joint_states->name[0] == "right_ur5_shoulder_pan_joint")
 	{
 		joint_states_ = *joint_states;
 		wrist_angle_ = joint_states->position[5];

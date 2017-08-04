@@ -13,23 +13,16 @@ LaserStitcher::LaserStitcher()
 	// ----- Input Topics -----
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
-	if( !nh_.getParam("laser_stitcher/target_frame_", target_frame_) )
-		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
-	if( !nh_.getParam("laser_stitcher/pointcloud_topic", pointcloud_topic) )
-		ROS_WARN_STREAM("[LaserStitcher] Failed to get output topic from parameter server - defaulting to " << pointcloud_topic << ".");
-	if( !nh_.getParam("laser_stitcher/finished_topic", finished_topic) )
-		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
-	if( !nh_.param<std::string>("laser_stitcher/laser_topic", finished_topic, "laser_stitcher/scanning_state") )
+	if( !nh_.param<std::string>("laser_stitcher/finished_topic", finished_topic, "laser_stitcher/scanning_state") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 
 	// ----- Output Stuff -----
-	if( !nh_.param<std::string>("laser_stitcher/laser_topic", target_frame_, "map") )
+	if( !nh_.param<std::string>("laser_stitcher/target_frame_", target_frame_, "map") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 
-
 	// ----- Publishing -----
-	if( !nh_.param<std::string>("laser_stitcher/laser_topic", pointcloud_topic, "laser_stitcher/output_cloud") )
+	if( !nh_.param<std::string>("laser_stitcher/pointcloud_topic", pointcloud_topic, "laser_stitcher/output_cloud") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get output topic from parameter server - defaulting to " << pointcloud_topic << ".");
 	nh_.param<bool>("laser_stitcher/publish_after_updating", publish_after_updating_, true);
 	nh_.param<int>("laser_stitcher/publishing_throttle", publishing_throttle_, 1);
@@ -42,14 +35,16 @@ LaserStitcher::LaserStitcher()
 	// ----- Movement Check -----
 	nh_.param<bool>("laser_stitcher/should_check_movement", should_check_movement_, true);
 	nh_.param<float>("laser_stitcher/distance_threshold", distance_threshold_, 0.02);	
-	nh_.param<float>("laser_stitcher/angle_threshold", angle_threshold_, 0.05);  /*
-	last_transform_.transform.translation.x = 0;
-	last_transform_.transform.translation.y = 0;
-	last_transform_.transform.translation.z = 0;
-	last_transform_.transform.rotation.x = 0;
-	last_transform_.transform.rotation.y = 0;
-	last_transform_.transform.rotation.z = 0;
-	last_transform_.transform.rotation.w = 0;  */
+	nh_.param<float>("laser_stitcher/angle_threshold", angle_threshold_, 0.05);  
+	/*
+	tf::Quaternion zero_rotation(0.0, 0.0, 0.0, 1.0);
+	tf::Vector3 zero_vector(0.0, 0.0, 0.0);
+	tf::Transform transform;
+	transform.setOrigin(zero_vector);
+	transform.setRotation(zero_rotation);
+	last_transform.setData(transform);
+*/
+	last_transform_.setIdentity();
 
 	// ----- Subscribers, Publishers, Listeners -----
 	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 20, &LaserStitcher::laserCallback, this);
@@ -147,7 +142,7 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 
 	is_running_ = is_running->data;
 
-} /*
+}
 
 /* ------------------------- LIDAR Has Moved -------------------------
   Checks whether the LIDAR frame has moved from the last scan position
@@ -159,28 +154,31 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 */
 bool LaserStitcher::lidarHasMoved(std::string laser_frame)
 {
-	return true;  /*
+	bool output = false;  
 	try
 	{ 
 		tf::StampedTransform current_transform;
 		listener_.lookupTransform(target_frame_, laser_frame, ros::Time(0), current_transform);
 
 		// Distance Check
-		float distance = sqrt(pow((current_transform.x - last_transform_.x),2) + pow((current_transform.y - last_transform_.y),2) + pow((current_transform.z - last_transform_.z),2));
+		float distance = sqrt(pow((current_transform.getOrigin().x() - last_transform_.getOrigin().x()),2) + pow((current_transform.getOrigin().y() - last_transform_.getOrigin().y()),2) + pow((current_transform.getOrigin().z() - last_transform_.getOrigin().z()),2));
 		if ( distance > distance_threshold_ ) 
-			return true;
+			output = true;
 
 		// Rotation Check 
-		//tf::
+		tf::Quaternion quat = current_transform.getRotation()*last_transform_.getRotation().inverse();
+		if ( quat.getW() > angle_threshold_ )
+			output = true;
 
 		last_transform_ = current_transform; 
 	}
-	catch
+	catch(tf::TransformException ex)
 	{
-
-	} */
+		ROS_ERROR("%s",ex.what());
+	} 
+	return output;
 }
-*/
+
 int main(int argc, char** argv)
 {
 	pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);

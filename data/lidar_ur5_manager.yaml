@@ -1,0 +1,7 @@
+
+lidar_ur5_manager:
+	angle_command_topic:    right_ur5_controller/right_ur5_URScript
+  scanning_state_topic:   laser_stitcher/scanning_state
+  service_name:           laser_stitcher/stationary_scan
+  fixed_start_pose:       false
+  start_pose:             [  ]
