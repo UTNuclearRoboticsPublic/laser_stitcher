@@ -11,11 +11,11 @@ LaserStitcher::LaserStitcher()
 	// Attempt to overwrite defaults using 
 	if( !nh_.getParam("laser_stitcher/laser_topic", laser_topic) )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
-	if( !nh_.getParam("laser_stitcher/laser_topic", target_frame_) )
+	if( !nh_.getParam("laser_stitcher/target_frame_", target_frame_) )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
-	if( !nh_.getParam("laser_stitcher/laser_topic", pointcloud_topic) )
+	if( !nh_.getParam("laser_stitcher/pointcloud_topic", pointcloud_topic) )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get output topic from parameter server - defaulting to " << pointcloud_topic << ".");
-	if( !nh_.getParam("laser_stitcher/laser_topic", finished_topic) )
+	if( !nh_.getParam("laser_stitcher/finished_topic", finished_topic) )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 	nh_.param<bool>("laser_stitcher/save_data", save_data_, true);
 	nh_.param<std::string>("laser_stitcher/bag_name", bag_name_, "stitched_pointcloud");
@@ -85,13 +85,13 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 
 	is_running_ = is_running->data;
 
-}
+} /*
 
 void LaserStitcher::checkFrameChange()
 {
 	
 }
-
+*/
 int main(int argc, char** argv)
 {
 	pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);

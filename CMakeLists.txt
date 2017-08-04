@@ -140,13 +140,23 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PCL_
 
 
 add_executable(laser_stitcher src/laser_stitcher.cpp)
+add_executable(laser_stitcher_scanning_true src/laser_stitcher_scanning_true.cpp)
 add_dependencies(
    laser_stitcher laser_geometry
   ${laser_stitcher_EXPORTED_TARGETS}
    ${catkin_EXPORTED_TARGETS}
 )
+add_dependencies(
+   laser_stitcher_scanning_true
+  ${laser_stitcher_scanning_true_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
 target_link_libraries(
   laser_stitcher
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(
+  laser_stitcher_scanning_true
   ${catkin_LIBRARIES}
 )
 
