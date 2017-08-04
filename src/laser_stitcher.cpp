@@ -13,6 +13,12 @@ LaserStitcher::LaserStitcher()
 	// ----- Input Topics -----
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
+	if( !nh_.getParam("laser_stitcher/target_frame_", target_frame_) )
+		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
+	if( !nh_.getParam("laser_stitcher/pointcloud_topic", pointcloud_topic) )
+		ROS_WARN_STREAM("[LaserStitcher] Failed to get output topic from parameter server - defaulting to " << pointcloud_topic << ".");
+	if( !nh_.getParam("laser_stitcher/finished_topic", finished_topic) )
+		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", finished_topic, "laser_stitcher/scanning_state") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 
@@ -141,7 +147,7 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 
 	is_running_ = is_running->data;
 
-}
+} /*
 
 /* ------------------------- LIDAR Has Moved -------------------------
   Checks whether the LIDAR frame has moved from the last scan position
@@ -174,7 +180,7 @@ bool LaserStitcher::lidarHasMoved(std::string laser_frame)
 
 	} */
 }
-
+*/
 int main(int argc, char** argv)
 {
 	pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);

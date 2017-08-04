@@ -150,6 +150,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(laser_stitcher_scanning_true src/laser_stitcher_scanning_true.cpp)
+add_dependencies(
+   laser_stitcher_scanning_true
+  ${laser_stitcher_scanning_true_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  laser_stitcher_scanning_true
+  ${catkin_LIBRARIES}
+)
+
 add_executable(lidar_servo_manager src/lidar_servo_manager.cpp)
 add_dependencies(
    lidar_servo_manager
