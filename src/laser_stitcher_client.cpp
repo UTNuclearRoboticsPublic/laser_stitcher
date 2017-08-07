@@ -14,6 +14,8 @@ int main(int argc, char** argv)
 	scan_srv.request.max_angle =  1.57;
 	scan_srv.request.external_angle_sensing = false;
 
+	ros::Duration(2.0).sleep();
+
 	while( ros::ok() )
 	{
 		if( ! client.call(scan_srv) )
@@ -22,7 +24,7 @@ int main(int argc, char** argv)
 			ROS_ERROR_STREAM("Successfully called service - pointcloud output size is " << scan_srv.response.output_cloud.height*scan_srv.response.output_cloud.width << ".");
 		ros::Duration(0.2).sleep();
 
-		break;
+		//break;
 	}
 
 }	
