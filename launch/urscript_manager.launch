@@ -1,0 +1,35 @@
+
+<launch>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/lidar_ur5_manager.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/tunnel_inspection_primitive_search.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/tunnel_inspection_base.yaml"/>
+
+	<node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+
+	<node
+      name    = "lidar_ur5_manager"
+      pkg     = "laser_stitcher"
+      type    = "lidar_ur5_manager"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+    
+    <node
+      name    = "laser_stitcher_client"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher_client"
+      args    = ""
+      output  = "screen"
+    >
+    </node>
+
+</launch>

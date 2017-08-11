@@ -94,7 +94,7 @@ void LIDARServoManager::angleCallback(const std_msgs::Float32::ConstPtr& angle)
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "laser_stitcher");
+	ros::init(argc, argv, "lidar_servo_manager");
 
 if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
     ros::console::notifyLoggerLevelsChanged();
