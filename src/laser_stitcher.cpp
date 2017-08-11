@@ -7,6 +7,7 @@
 */
 LaserStitcher::LaserStitcher()
 {
+
 	// These three variables not used elsewhere in class...
 	std::string laser_topic, pointcloud_topic, finished_topic;
 
@@ -118,8 +119,10 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 { 
 	if(!(is_running->data) && is_running_)			// Turning off, after it's been on
 	{
+		ROS_ERROR_STREAM("turn off");
 		if(save_data_)
 		{
+			ROS_ERROR_STREAM("saving");
 			rosbag::Bag bag;
 			bag.open(bag_name_+".bag", rosbag::bagmode::Write);
 			bag.write(cloud_pub_.getTopic(), ros::Time::now(), summed_pointcloud_);
@@ -185,8 +188,8 @@ int main(int argc, char** argv)
 
 	ros::init(argc, argv, "laser_stitcher");
 
-if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
-    ros::console::notifyLoggerLevelsChanged();
+//if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
+//    ros::console::notifyLoggerLevelsChanged();
 
 	LaserStitcher laser_stitcher;
 }

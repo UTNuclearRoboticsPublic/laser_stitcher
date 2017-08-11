@@ -27,7 +27,7 @@ LIDARUR5Manager::LIDARUR5Manager()
 			fixed_start_state_ = false;
 		}
 
-	wrist_speed_ = 0.1; 			// radians/s? I think...
+	nh_.param<float>("lidar_ur5_manager/wrist_speed", wrist_speed_, 0.3);
 	wait_time_ = 0.01; 		// seconds
 	lidar_frame_name_ = "3d_lidar_plane";
 	parent_frame_name_ = "base_link";
@@ -138,8 +138,8 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "lidar_ur5_manager");
 
-if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
-    ros::console::notifyLoggerLevelsChanged();
+//if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
+//    ros::console::notifyLoggerLevelsChanged();
 
 	LIDARUR5Manager servo_manager;
 }
