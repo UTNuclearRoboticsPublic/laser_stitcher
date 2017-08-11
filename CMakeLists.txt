@@ -16,6 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
+	pcl_processing_server
 )
 
 ## System dependencies are found with CMake's conventions
@@ -183,7 +184,7 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-add_executable(laser_stitcher_client src/laser_stitcher_client.cpp)
+add_executable(laser_stitcher_client src/laser_stitcher_client.cpp )
 add_dependencies(
    laser_stitcher_client
   ${laser_stitcher_EXPORTED_TARGETS}

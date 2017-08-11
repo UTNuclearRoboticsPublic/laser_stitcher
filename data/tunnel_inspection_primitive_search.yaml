@@ -1,0 +1,87 @@
+
+primitive_search:
+  primitive_search:
+    min_cloud_size:       50
+    # NOTE - task names in task_list below MUST match the subheadings under the tasks heading
+    task_list:            [ left_wall, right_wall, big_duct ]
+    plane_options:
+      max_iterations:   50
+      dist_threshold:   0.005       
+    cylinder_options:
+      max_iterations:   50
+      dist_threshold:   0.005
+    tasks:
+      left_wall:
+        type:                   5     # Planar Segmentation
+        max_iterations:         500
+        dist_threshold:         0.01      
+        should_publish:         true
+        publish_topic:          left_wall
+        should_publish_r:       true
+        publish_topic_r:        left_wall_less
+        remove_cloud:           true
+        # Additional parameters (not in normal pcl_process yaml task structure):
+        angle_threshold:        15                  # degrees
+        offset_threshold:       0.02                # meteres
+        check_orientation:      false
+        check_distance:         false
+        expected_coefficients:  [0.0, 1.00, 0.0, 1.37]
+          # +/- thickness, +/- horizontal, +/- other 
+        clip_boundaries:        [-0.05, 0.05, -2.0, 2.0, -.05, 3.65] #[-0.2, 0.2, -10.0, 10.0, -0.3, 5.0] 
+      right_wall: 
+        type:                   5     # Planar Segmentation
+        max_iterations:         500
+        dist_threshold:         0.005      
+        should_publish:         true
+        publish_topic:          right_wall
+        should_publish_r:       true
+        publish_topic_r:        right_wall_less
+        remove_cloud:           true
+        # Additional parameters (not in normal pcl_process yaml task structure):
+        angle_threshold:        15                  # degrees
+        offset_threshold:       0.02                # meteres
+        check_orientation:      false
+        check_distance:         false
+        expected_coefficients:  [0.0, -1.0, 0.0, 1.37]
+          # +/- thickness, +/- horizontal, +/- other
+        clip_boundaries:        [-0.05, 0.05, -2.0, 2.0, -.05, 3.65]
+      big_duct:           
+        type:                   6     # Cylinder Segmentation
+        max_iterations:         500
+        dist_threshold:         0.02      
+        max_radius:             0.35       # meters
+        should_publish:         true
+        publish_topic:          big_duct
+        should_publish_r:       true
+        publish_topic_r:        big_duct_less
+        remove_cloud:           true
+        # Additional parameters (not in normal pcl_process yaml task structure):
+        radius_threshold:       0.02                # meteres
+        angle_threshold:        15                  # degrees
+        offset_threshold:       0.02                # meteres
+        check_radius:           true
+        check_orientation:      false
+        check_distance:         false
+        expected_coefficients:  [1.0, 0.0, 0.0, 0.0, -0.457, 0.0, 0.318]
+          # +/- length, +/-/+/- radii
+        clip_boundaries:        [-0.25, 0.25, -0.1, 0.1, -0.1, 0.1]
+      little_duct:
+        type:                   6     # Cylinder Segmentation
+        max_iterations:         500
+        dist_threshold:         0.005      
+        max_radius:             0.25       # meters
+        should_publish:         true
+        publish_topic:          cylinder_cloud2
+        should_publish_r:       true
+        publish_topic_r:        cylinderless_cloud2
+        remove_cloud:           true
+        # Additional parameters (not in normal pcl_process yaml task structure):
+        radius_threshold:       0.10                # meteres
+        angle_threshold:        15                  # degrees
+        offset_threshold:       0.02                # meteres
+        check_radius:           true
+        check_orientation:      false
+        check_distance:         false
+        expected_coefficients:  [0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.07]
+          # +/- length, +/-/+/- radii
+        clip_boundaries:        [-5, 5, -1, 1, -1, 1]
