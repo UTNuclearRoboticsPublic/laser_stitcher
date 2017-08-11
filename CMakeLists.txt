@@ -16,6 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
+	pcl_processing_server
 )
 
 ## System dependencies are found with CMake's conventions
@@ -141,12 +142,23 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PCL_
 
 add_executable(laser_stitcher src/laser_stitcher.cpp)
 add_dependencies(
-   laser_stitcher laser_geometry
+   laser_stitcher laser_geometry pcl_processing_server
   ${laser_stitcher_EXPORTED_TARGETS}
    ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(
   laser_stitcher
+  ${catkin_LIBRARIES}
+)
+
+add_executable(laser_stitcher_scanning_true src/laser_stitcher_scanning_true.cpp)
+add_dependencies(
+   laser_stitcher_scanning_true
+  ${laser_stitcher_scanning_true_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  laser_stitcher_scanning_true
   ${catkin_LIBRARIES}
 )
 
@@ -161,7 +173,18 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-add_executable(laser_stitcher_client src/laser_stitcher_client.cpp)
+add_executable(lidar_ur5_manager src/lidar_ur5_manager.cpp)
+add_dependencies(
+   lidar_ur5_manager
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  lidar_ur5_manager
+  ${catkin_LIBRARIES}
+)
+
+add_executable(laser_stitcher_client src/laser_stitcher_client.cpp )
 add_dependencies(
    laser_stitcher_client
   ${laser_stitcher_EXPORTED_TARGETS}
@@ -171,7 +194,6 @@ target_link_libraries(
   laser_stitcher_client
   ${catkin_LIBRARIES}
 )
-
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
