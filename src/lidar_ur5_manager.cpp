@@ -4,7 +4,7 @@
 LIDARUR5Manager::LIDARUR5Manager()
 {
 	std::string urscript_command_topic;
-	nh_.param<std::string>("lidar_ur5_manager/angle_command_topic", urscript_command_topic, "right_ur5_controller/right_ur5_URScript");
+	nh_.param<std::string>("lidar_ur5_manager/angle_command_topic", urscript_command_topic, "left_ur5_controller/left_ur5_URScript");
 	urscript_pub_ = nh_.advertise<std_msgs::String>(urscript_command_topic, 1);
 	
 	std::string scanning_state_topic;
@@ -100,7 +100,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 void LIDARUR5Manager::jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states)
 {
 	callbacks_received_++;
-	if(joint_states->name[0] == "right_ur5_shoulder_pan_joint")
+	if(joint_states->name[0] == "left_ur5_shoulder_pan_joint")
 	{
 		joint_states_ = *joint_states;
 		wrist_angle_ = joint_states->position[5];

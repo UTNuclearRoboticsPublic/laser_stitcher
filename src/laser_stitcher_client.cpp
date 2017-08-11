@@ -1,10 +1,10 @@
 
 #include <ros/ros.h>
 #include "laser_stitcher/stationary_scan.h"
-#include "pcl_processing_server/server.h"
-#include "pcl_processing_server/pcl_utilities.h"
-#include "pcl_processing_server/pcl_process_publisher.h"
-#include "pcl_processing_server/primitive_search.h"
+//#include "pcl_processing_server/server.h"
+//#include "pcl_processing_server/pcl_utilities.h"
+//#include "pcl_processing_server/pcl_process_publisher.h"
+//#include "pcl_processing_server/primitive_search.h"
 
 int main(int argc, char** argv)
 {
@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 
 	ros::NodeHandle nh;
 	ros::ServiceClient scanning_client = nh.serviceClient<laser_stitcher::stationary_scan>("laser_stitcher/stationary_scan");
-	ros::ServiceClient processing_client = nh.serviceClient<pcl_processing_server::pcl_process>("pcl_service");
-	ros::ServiceClient search_client = nh.serviceClient<pcl_processing_server::primitive_process>("primitive_search");
+	//ros::ServiceClient processing_client = nh.serviceClient<pcl_processing_server::pcl_process>("pcl_service");
+	//ros::ServiceClient search_client = nh.serviceClient<pcl_processing_server::primitive_process>("primitive_search");
 
 	laser_stitcher::stationary_scan scan_srv;
 	scan_srv.request.min_angle = -1.57;
