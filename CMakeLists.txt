@@ -16,7 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
-	pcl_processing_server
+	
 )
 
 ## System dependencies are found with CMake's conventions
@@ -142,7 +142,7 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PCL_
 
 add_executable(laser_stitcher src/laser_stitcher.cpp)
 add_dependencies(
-   laser_stitcher laser_geometry pcl_processing_server
+   laser_stitcher laser_geometry
   ${laser_stitcher_EXPORTED_TARGETS}
    ${catkin_EXPORTED_TARGETS}
 )
