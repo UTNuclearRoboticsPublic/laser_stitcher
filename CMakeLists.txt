@@ -109,7 +109,7 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES laser_stitcher
+#  LIBRARIES laser_stitcher
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -258,6 +258,12 @@ target_link_libraries(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+
+## Install project namespaced headers
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE)
 
 ## Install project namespaced headers
 install(DIRECTORY include/${PROJECT_NAME}/

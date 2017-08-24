@@ -12,7 +12,7 @@
       args    = ""
       output  = "screen"
     >
-    </node>
+  </node>
 
 	<node
       name    = "lidar_ur5_manager"
@@ -21,7 +21,7 @@
       args    = ""
       output  = "screen"
     >
-    </node>
+  </node>
     
     <node
       name    = "laser_stitcher_client"
@@ -30,6 +30,6 @@
       args    = ""
       output  = "screen"
     >
-    </node>
+  </node>
 
 </launch>
