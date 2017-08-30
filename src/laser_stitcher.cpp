@@ -18,7 +18,7 @@ LaserStitcher::LaserStitcher()
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 
 	// ----- Output Stuff -----
-	if( !nh_.param<std::string>("laser_stitcher/target_frame_", target_frame_, "map") )
+	if( !nh_.param<std::string>("laser_stitcher/target_frame", target_frame_, "map") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 
