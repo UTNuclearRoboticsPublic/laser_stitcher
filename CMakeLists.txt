@@ -109,7 +109,7 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES laser_stitcher
+  
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )

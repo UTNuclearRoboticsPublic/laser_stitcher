@@ -14,11 +14,7 @@ int main(int argc, char** argv)
 	ros::Publisher final_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("laser_stitcher/final_cloud", 1);
 
 	std::string postprocessing_file_name;
-	if( !nh.param("laser_stitcher/postprocessing_file_name", postprocessing_file_name) )
-	{
-		ROS_ERROR("[LaserStitcherClient] Failed to get postprocessing file name! Exiting...");
-		return -1;
-	}
+	nh.param<std::string>("laser_stitcher/postprocessing_file_name", postprocessing_file_name);
 
 	laser_stitcher::stationary_scan scan_srv;
 	float temp_angle;
