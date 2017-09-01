@@ -18,7 +18,7 @@ LaserStitcher::LaserStitcher()
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
 
 	// ----- Output Stuff -----
-	if( !nh_.param<std::string>("laser_stitcher/target_frame", target_frame_, "map") )
+	if( !nh_.param<std::string>("laser_stitcher/target_frame_", target_frame_, "map") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get target frame from parameter server - defaulting to " << target_frame_ << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 
@@ -58,8 +58,8 @@ LaserStitcher::LaserStitcher()
 
 	is_running_ = false;
 
-	ros::Duration(2.0).sleep();
-
+	ros::Duration(0.50).sleep();
+	ROS_INFO_STREAM("[LaserStitcher] Stitcher online and ready.");
 
 	while(ros::ok())
 		ros::spinOnce();
@@ -100,6 +100,7 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 		    pcl::concatenatePointCloud(current_summed_cloud, new_planar_cloud, summed_pointcloud_);
 		    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught and stitched!");
 
+		    ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << publish_after_updating_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
 		    if(publish_after_updating_)
 		    	if(throttle_index_+1 == publishing_throttle_)
 		    		cloud_pub_.publish(summed_pointcloud_);
@@ -119,24 +120,23 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 { 
 	if(!(is_running->data) && is_running_)			// Turning off, after it's been on
 	{
-		ROS_ERROR_STREAM("turn off");
 		if(save_data_)
 		{
-			ROS_ERROR_STREAM("saving");
+			ROS_INFO_STREAM("[LaserStitcher] Saving a pointcloud...");
 			rosbag::Bag bag;
 			bag.open(bag_name_+".bag", rosbag::bagmode::Write);
 			bag.write(cloud_pub_.getTopic(), ros::Time::now(), summed_pointcloud_);
-			ROS_INFO_STREAM("[LaserStitcher] Published a ROSBAG to the file " << bag_name_+".bag");
+			ROS_INFO_STREAM("[LaserStitcher] Saved a ROSBAG to the file " << bag_name_+".bag");
 		}
 		cloud_pub_.publish(summed_pointcloud_);
-		ROS_DEBUG_STREAM("[LaserStitcher] Finished a stitching routine. Final cloud size: " << summed_pointcloud_.height*summed_pointcloud_.width << ".");
+		ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine. Final cloud size: " << summed_pointcloud_.height*summed_pointcloud_.width << ".");
 
 		sensor_msgs::PointCloud2Modifier cloud_modifier_(summed_pointcloud_);
 		cloud_modifier_.resize(0);
 	}
 	else if(is_running->data && !is_running_)		// Turning on, after it's been off
 	{
-		ROS_DEBUG_STREAM("[LaserStitcher] Beginning a stitching routine.");
+		ROS_INFO_STREAM("[LaserStitcher] Beginning a stitching routine.");
 	}
 	else if(is_running->data)						// Turning on, when it's already on
 		ROS_DEBUG_STREAM("[LaserStitcher] Received call to begin stitching, but was already stitching. No change made.");
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "laser_stitcher");
 
 //if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
-//    ros::console::notifyLoggerLevelsChanged();
+ //   ros::console::notifyLoggerLevelsChanged();
 
 	LaserStitcher laser_stitcher;
 }

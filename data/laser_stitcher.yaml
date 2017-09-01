@@ -9,6 +9,6 @@ laser_stitcher:
   publishing_throttle:      1
   save_data:                true
   bag_name:                 stitched_pointcloud
-  should_check_movement:    true
+  should_check_movement:    false
   distance_threshold:       0.02
   angle_threshold:          0.05

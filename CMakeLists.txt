@@ -16,7 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
-	
+	pcl_processing_server
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,7 +109,7 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES laser_stitcher
+  LIBRARIES laser_stitcher
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -186,12 +186,12 @@ target_link_libraries(
 
 add_executable(laser_stitcher_client src/laser_stitcher_client.cpp )
 add_dependencies(
-   laser_stitcher_client
+   laser_stitcher_client 
   ${laser_stitcher_EXPORTED_TARGETS}
    ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(
-  laser_stitcher_client
+  laser_stitcher_client 
   ${catkin_LIBRARIES}
 )
 
@@ -258,12 +258,6 @@ target_link_libraries(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
-## Install project namespaced headers
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE)
 
 ## Install project namespaced headers
 install(DIRECTORY include/${PROJECT_NAME}/

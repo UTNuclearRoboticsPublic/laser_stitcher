@@ -1,8 +1,11 @@
 
 <launch>
 
-  <rosparam  command="load"  file="$(find laser_stitcher)/data/lidar_ur5_manager.yaml"/>
-  <rosparam  command="load"  file="$(find laser_stitcher)/data/laser_stitcher_postprocess.yaml"/>
+  <arg name="postprocessing_file_name" default="handle_turning_demo_postprocess"/>
+  <arg name="laser_stitcher_yaml_file" default="handle_turning_demo_ur5"/>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/lidar_ur5_manager/$(arg laser_stitcher_yaml_file).yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/postprocessing/$(arg postprocessing_file_name).yaml"/>
 
 	<node
       name    = "laser_stitcher"
@@ -29,6 +32,7 @@
     args    = ""
     output  = "screen"
   >
+    <param name="postprocessing_file_name" type="str" value="$(arg postprocessing_file_name)" />
   </node>
 
   <node

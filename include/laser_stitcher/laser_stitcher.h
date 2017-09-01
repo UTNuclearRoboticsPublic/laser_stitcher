@@ -12,10 +12,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <rosbag/bag.h>
 
-//#include <tf2_ros/transform_listener.h>
-
-//#include <tf2/buffer_core.h>
-
 class LaserStitcher
 {
 public: 
