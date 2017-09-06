@@ -28,11 +28,13 @@ LIDARUR5Manager::LIDARUR5Manager()
 		}
 
 	nh_.param<float>("lidar_ur5_manager/wrist_speed", wrist_speed_, 0.3);
+	nh_.param<float>("lidar_ur5_manager/wrist_speed_returning", wrist_speed_returning_, 0.8);
+	nh_.param<bool>("lidar_ur5_manager/scan_while_returning", scan_while_returning_, false);
 	wait_time_ = 0.01; 		// seconds
 	lidar_frame_name_ = "3d_lidar_plane";
 	parent_frame_name_ = "base_link";
 
-	ROS_ERROR_STREAM("[LIDARUR5Manager] Manager online.");
+	ROS_INFO_STREAM("[LIDARUR5Manager] Manager online.");
 
 	ros::spin(); 
 }
@@ -47,25 +49,33 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	char start_cmd[200];
 	if(fixed_start_state_)
 	{
-		sprintf(start_cmd, "movej([%f, %f, %f, %f, %f, %f], 0.4, 0.1)", start_state_[0], start_state_[1], start_state_[2], start_state_[3], start_state_[4], start_state_[5]);	
+		sprintf(start_cmd, "movej([%f, %f, %f, %f, %f, %f], 0.8, 0.1)", start_state_[0], start_state_[1], start_state_[2], start_state_[3], start_state_[4], start_state_[5]);	
 		ros::Duration(3.0).sleep();
+		ROS_INFO_STREAM("[LIDARUR5Manager] Starting command:  " << start_cmd);
+		std_msgs::String start_msg;
+		start_msg.data = start_cmd;
+		urscript_pub_.publish(start_msg);
 	}
-	//else 			// Why was I telling it to go where it already is...? 
-		//sprintf(start_cmd, "movej([%f, %f, %f, %f, %f, %f], 0.4, 0.1)", joint_states_.position[0], joint_states_.position[1], joint_states_.position[2], joint_states_.position[3], joint_states_.position[4], min_angle_);
-	ROS_DEBUG_STREAM("[LIDARUR5Manager] Starting command:  " << start_cmd);
-	std_msgs::String start_msg;
-	start_msg.data = start_cmd;
-	urscript_pub_.publish(start_msg);
 
 	min_angle_ = req.min_angle;
 	max_angle_ = req.max_angle;	
 
+	std_msgs::Bool scanning_state;
+	if(scan_while_returning_)
+	{
+		scanning_state.data = true;
+		scanning_state_pub_.publish(scanning_state);
+		ROS_INFO_STREAM("[LIDARUR5Manager] Sending scanning start message.");
+		ros::Duration(0.5).sleep();
+	}
+
 	// Turn counterclockwise prior to scanning - get to 'max_angle' starting point:
+	ROS_INFO_STREAM("Moving wrist towards point " << max_angle_ << " at speed " << wrist_speed_returning_);
 	while(wrist_angle_ < max_angle_)
 	{
 		char counterclockwise_cmd[200];
-		sprintf(counterclockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, 0.4], 0.4, 0.1)");
-		ROS_DEBUG_STREAM("[LIDARUR5Manager] Counterclockwise command:  " << start_cmd);
+		sprintf(counterclockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, %f], 0.8, 0.1)", wrist_speed_returning_);
+		ROS_DEBUG_STREAM("[LIDARUR5Manager] Counterclockwise command:  " << counterclockwise_cmd);
 		std_msgs::String counterclockwise_msg;
 		counterclockwise_msg.data = counterclockwise_cmd;
 		urscript_pub_.publish(counterclockwise_msg);
@@ -76,18 +86,21 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 		ROS_DEBUG_STREAM("[LIDARUR5Manager] Sent a counterclockwise motion command. Current position: " << wrist_angle_);
 	}
 	
-	std_msgs::Bool scanning_state;
-	scanning_state.data = true;
-	scanning_state_pub_.publish(scanning_state);
-	ROS_ERROR_STREAM("[LIDARUR5Manager] Sending scanning start message.");
-	ros::Duration(1.0).sleep();
+	if(!scan_while_returning_)
+	{
+		scanning_state.data = true;
+		scanning_state_pub_.publish(scanning_state);
+		ROS_INFO_STREAM("[LIDARUR5Manager] Sending scanning start message.");
+		ros::Duration(0.5).sleep();
+	}
 
 	// Turn clockwise while scanning - get to 'min_angle' stopping point:
+	ROS_INFO_STREAM("Moving wrist towards point " << min_angle_ << " at speed " << wrist_speed_);
 	while(wrist_angle_ > min_angle_)
 	{
 		char clockwise_cmd[200];
 		sprintf(clockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, %f], 0.4, 0.1)", -wrist_speed_);
-		ROS_DEBUG_STREAM("[LIDARUR5Manager] Clockwise command:  " << start_cmd);
+		ROS_DEBUG_STREAM("[LIDARUR5Manager] Clockwise command:  " << clockwise_cmd);
 		std_msgs::String clockwise_msg;
 		clockwise_msg.data = clockwise_cmd;
 		urscript_pub_.publish(clockwise_msg);
@@ -100,7 +113,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	getOutputCloud("laser_stitcher/output_cloud");
 	res.output_cloud = output_cloud_;
 	scanning_state.data = false;
-	ROS_ERROR_STREAM("[LIDARUR5Manager] About to publish turn scanning routine off message");
+	ROS_INFO_STREAM("[LIDARUR5Manager] About to publish turn scanning routine off message");
 	scanning_state_pub_.publish(scanning_state); 			// Shut down laser stitcher process
 
 

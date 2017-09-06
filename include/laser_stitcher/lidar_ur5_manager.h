@@ -25,12 +25,14 @@ private:
 	float max_angle_;
 	float min_angle_;
 	float wrist_speed_;
+	float wrist_speed_returning_;
 	float wait_time_;
 	float callbacks_received_;
 	float correct_callbacks_;
 	float wrist_angle_;
 	sensor_msgs::JointState joint_states_;
 
+	bool scan_while_returning_;
 	bool fixed_start_state_;
 	std::vector<float> start_state_;
 
