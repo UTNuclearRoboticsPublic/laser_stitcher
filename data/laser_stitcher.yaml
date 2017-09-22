@@ -18,4 +18,4 @@ laser_stitcher:
   angle_threshold:          0.05
   # client stuff 
   should_loop:              true
-  postprocessing_file_name: laser_stitcher_postprocess
+  postprocessing_file_name: laser_stitcher_postprocess 
