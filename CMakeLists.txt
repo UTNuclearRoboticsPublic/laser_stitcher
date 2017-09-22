@@ -16,7 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
-	pcl_processing_server
+	pointcloud_processing_server
 )
 
 ## System dependencies are found with CMake's conventions
@@ -111,7 +111,7 @@ catkin_package(
   INCLUDE_DIRS include
   
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  CATKIN_DEPENDS pointcloud_processing_server 
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
@@ -190,7 +190,7 @@ add_dependencies(
    laser_stitcher_client 
   ${laser_stitcher_EXPORTED_TARGETS}
    ${catkin_EXPORTED_TARGETS}
-  pcl_processing_server
+  pointcloud_processing_server
 )
 target_link_libraries(
   laser_stitcher_client 
