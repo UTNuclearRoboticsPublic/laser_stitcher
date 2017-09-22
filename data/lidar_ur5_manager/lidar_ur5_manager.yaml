@@ -3,8 +3,8 @@ lidar_ur5_manager:
   angle_command_topic:    left_ur5_controller/left_ur5_URScript
   scanning_state_topic:   laser_stitcher/scanning_state
   service_name:           laser_stitcher/stationary_scan
-  min_angle:              -0.78
-  max_angle:              0.78
+  min_angle:              -1.65
+  max_angle:              1.65
   wrist_speed:            0.4
   fixed_start_pose:       false
   start_pose:             [ 1 ]

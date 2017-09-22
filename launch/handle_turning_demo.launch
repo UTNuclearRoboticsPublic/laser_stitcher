@@ -36,9 +36,9 @@
   </node>
 
   <node
-      name    = "pcl_processing_server"
-      pkg     = "pcl_processing_server"
-      type    = "pcl_processing_server"
+      name    = "pointcloud_processing_server"
+      pkg     = "pointcloud_processing_server"
+      type    = "pointcloud_processing_server"
       args    = ""
       output  = "screen"
     >

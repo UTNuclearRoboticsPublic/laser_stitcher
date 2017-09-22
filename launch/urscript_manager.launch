@@ -3,6 +3,7 @@
 
   <rosparam  command="load"  file="$(find laser_stitcher)/data/lidar_ur5_manager/lidar_ur5_manager.yaml"/>
   <rosparam  command="load"  file="$(find laser_stitcher)/data/postprocessing/laser_stitcher_postprocess.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/data/laser_stitcher.yaml"/>
 
 	<node
       name    = "laser_stitcher"
@@ -32,9 +33,9 @@
   </node>
 
   <node
-      name    = "pcl_processing_server"
-      pkg     = "pcl_processing_server"
-      type    = "pcl_processing_server"
+      name    = "pointcloud_processing_server"
+      pkg     = "pointcloud_processing_server"
+      type    = "pointcloud_processing_server"
       args    = ""
       output  = "screen"
     >

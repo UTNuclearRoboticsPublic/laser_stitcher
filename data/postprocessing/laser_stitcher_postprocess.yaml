@@ -1,5 +1,5 @@
 
-pcl_process:
+pointcloud_process:
   laser_stitcher_postprocess:
     min_cloud_size:       50
     # NOTE - task names in task_list below MUST match the subheadings under the tasks heading

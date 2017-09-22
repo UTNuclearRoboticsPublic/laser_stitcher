@@ -70,7 +70,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	}
 
 	// Turn counterclockwise prior to scanning - get to 'max_angle' starting point:
-	ROS_INFO_STREAM("Moving wrist towards point " << max_angle_ << " at speed " << wrist_speed_returning_);
+	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << max_angle_ << " at speed " << wrist_speed_returning_);
 	while(wrist_angle_ < max_angle_)
 	{
 		char counterclockwise_cmd[200];
@@ -95,7 +95,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	}
 
 	// Turn clockwise while scanning - get to 'min_angle' stopping point:
-	ROS_INFO_STREAM("Moving wrist towards point " << min_angle_ << " at speed " << wrist_speed_);
+	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << min_angle_ << " at speed " << wrist_speed_);
 	while(wrist_angle_ > min_angle_)
 	{
 		char clockwise_cmd[200];

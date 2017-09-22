@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 		{
 			
 			if( ! scanning_client.call(scan_srv) )
-				ROS_ERROR_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
+				ROS_INFO_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
 			else
 				ROS_ERROR_STREAM("[LaserStitcherClient] Successfully called scanning service - pointcloud output size is " << scan_srv.response.output_cloud.height*scan_srv.response.output_cloud.width << ".");
 			ros::Duration(0.2).sleep();
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
 		pointcloud_processing_server::pointcloud_process postprocess;
 		postprocess.request.pointcloud = scan_srv.response.output_cloud;
-		PointcloudTaskCreation::processFromYAML(&postprocess, postprocessing_file_name, "pointcloud_service");
+		PointcloudTaskCreation::processFromYAML(&postprocess, postprocessing_file_name, "pointcloud_process");
 
 		if(postprocess.request.tasks.size() != 0)
 		{
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 			final_cloud_pub.publish(final_cloud);
 		}
 		else
-			ROS_WARN_STREAM("[LaserStitcherClient] Not preforming postprocessing - failed to get tasks from server. Probably something wrong with yaml files / parameters. Used file name " << postprocessing_file_name);
+			ROS_WARN_STREAM("[LaserStitcherClient] Not preforming postprocessing - failed to get tasks from server. Probably something wrong with yaml files / parameters. Looked for tasks at " << postprocessing_file_name);
 
 		// If we shouldn't loop, break the loop
 		if(!should_loop)
