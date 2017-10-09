@@ -9,13 +9,15 @@ LaserStitcher::LaserStitcher()
 {
 
 	// These three variables not used elsewhere in class...
-	std::string laser_topic, pointcloud_topic, finished_topic;
+	std::string laser_topic, pointcloud_topic, finished_topic, reset_topic;
 
 	// ----- Input Topics -----
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
 	if( !nh_.param<std::string>("laser_stitcher/finished_topic", finished_topic, "laser_stitcher/scanning_state") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning-state topic from parameter server - defaulting to " << finished_topic << ".");
+	if( !nh_.param<std::string>("laser_stitcher/reset_topic", reset_topic, "laser_stitcher/reset_cloud") )
+		ROS_WARN_STREAM("[LaserStitcher] Failed to get reset cloud topic from parameter server - defaulting to " << finished_topic << ".");
 
 	// ----- Output Stuff -----
 	if( !nh_.param<std::string>("laser_stitcher/target_frame_", target_frame_, "map") )
@@ -50,6 +52,7 @@ LaserStitcher::LaserStitcher()
 	// ----- Subscribers, Publishers, Listeners -----
 	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 20, &LaserStitcher::laserCallback, this);
 	finish_sub_ = nh_.subscribe<std_msgs::Bool>(finished_topic, 20, &LaserStitcher::setScanningState, this);
+	reset_sub_ = nh_.subscribe<std_msgs::Bool>(reset_topic, 20, &LaserStitcher::resetCloud, this);
 	cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pointcloud_topic, 3);
 	
 	//tf2_ros::tfBuffer tfBuffer_;
@@ -57,6 +60,18 @@ LaserStitcher::LaserStitcher()
 	//tf2::BufferCore buffer_core_(ros::Duration(10));
 
 	is_running_ = false;
+
+	nh_.param("laser_stitcher/voxelize", should_voxelize_, true);
+	if(should_voxelize_)
+	{
+		nh_.param("laser_stitcher/should_throttle_voxel", should_throttle_voxel_, false);
+		if(should_throttle_voxel_)
+			nh_.param("laser_stitcher/voxel_throttle", voxel_throttle_, 10);
+		nh_.param<float>("laser_stitcher/leaf_size", leaf_size_, 0.01);
+		voxel_filter_.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
+	}
+
+	nh_.param("laser_stitcher/reset_cloud_when_stopped", reset_cloud_when_stopped_, true);
 
 	ros::Duration(0.50).sleep();
 	ROS_INFO_STREAM("[LaserStitcher] Stitcher online and ready.");
@@ -100,6 +115,19 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 		    pcl::concatenatePointCloud(current_summed_cloud, new_planar_cloud, summed_pointcloud_);
 		    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught and stitched!");
 
+		    if(should_voxelize_)
+		    {
+		    	if(voxel_throttle_counter_ > voxel_throttle_)
+		    	{
+		    		pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in;
+					pcl::PointCloud<pcl::PointXYZ> temp_pc_out;
+					pcl::fromROSMsg(summed_pointcloud_, *temp_pc_in);
+					voxel_filter_.setInputCloud(temp_pc_in);
+					voxel_filter_.filter(temp_pc_out);
+					pcl::toROSMsg(temp_pc_out, summed_pointcloud_);
+		    	}
+		    }
+
 		    ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << publish_after_updating_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
 		    if(publish_after_updating_)
 		    	if(throttle_index_+1 == publishing_throttle_)
@@ -131,8 +159,11 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 		cloud_pub_.publish(summed_pointcloud_);
 		ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine. Final cloud size: " << summed_pointcloud_.height*summed_pointcloud_.width << ".");
 
-		sensor_msgs::PointCloud2Modifier cloud_modifier_(summed_pointcloud_);
-		cloud_modifier_.resize(0);
+		if(reset_cloud_when_stopped_)
+		{
+			sensor_msgs::PointCloud2Modifier cloud_modifier_(summed_pointcloud_);
+			cloud_modifier_.resize(0);
+		}
 	}
 	else if(is_running->data && !is_running_)		// Turning on, after it's been off
 	{
@@ -144,10 +175,25 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 		ROS_DEBUG_STREAM("[LaserStitcher] Received call to stop stitching, but was already not stitching. No change made.");
 
 	is_running_ = is_running->data;
+}
 
+/* ------------------------- Kill Cloud -------------------------
+  Callback to tell system to depopulate and reset the cloud.
+    This can also be done automatically when a scan is halted, if the
+	  class variable reset_cloud_when_stopped_ is set to TRUE
+*/
+void LaserStitcher::resetCloud(const std_msgs::Bool::ConstPtr& placeholder)
+{ 
+	sensor_msgs::PointCloud2Modifier cloud_modifier_(summed_pointcloud_);
+	cloud_modifier_.resize(0);
 }
 
 /* ------------------------- LIDAR Has Moved -------------------------
+  
+  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  XXXXXXXXXXXXXXXXXXXXXX    NOT FULLY IMPLEMENTED XXXXXXXXXXXXXXXXXXXXXX
+  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
   Checks whether the LIDAR frame has moved from the last scan position
     meaningfully enough to warrant adding a new cloud. 
     Prevents many identical scans from being added.

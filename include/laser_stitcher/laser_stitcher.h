@@ -9,6 +9,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <laser_geometry/laser_geometry.h>
 #include <tf/transform_listener.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <rosbag/bag.h>
 
@@ -20,6 +21,7 @@ private:
 	ros::NodeHandle nh_;
 	ros::Subscriber scan_sub_;
 	ros::Subscriber finish_sub_;
+	ros::Subscriber reset_sub_;
 	ros::Publisher cloud_pub_;
 
 	bool is_running_;
@@ -40,8 +42,18 @@ private:
 	tf::TransformListener listener_;
 	tf::StampedTransform last_transform_;
 
+	pcl::VoxelGrid<pcl::PointXYZ> voxel_filter_;
+	bool should_voxelize_;
+	bool should_throttle_voxel_;
+	int voxel_throttle_counter_;
+	int voxel_throttle_;
+	float leaf_size_;
+
+	bool reset_cloud_when_stopped_;
+
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in);
 	void setScanningState(const std_msgs::Bool::ConstPtr& shut_down);
+	void resetCloud(const std_msgs::Bool::ConstPtr& placeholder);
 	bool lidarHasMoved(std::string);
 };
 
