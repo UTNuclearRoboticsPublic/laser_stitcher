@@ -1,0 +1,27 @@
+
+laser_stitcher:
+  target_frame:             map
+  # topics
+  laser_topic:              hokuyo_scan
+  finished_topic:           laser_stitcher/scanning_state
+  pointcloud_topic:         laser_stitcher/output_cloud
+  # laser_stitching
+  sleepy_time:              0.1
+  # publishing / saving
+  publish_after_updating:   true
+  publishing_throttle:      1
+  save_data:                true
+  bag_name:                 stitched_pointcloud
+  # movement_check - not really implemented fully 
+  should_check_movement:    false
+  distance_threshold:       0.02
+  angle_threshold:          0.05
+  # client stuff 
+  should_loop:              true
+  postprocessing_file_name: laser_stitcher_postprocess
+  # voxel filter
+  voxelize:                 true
+  should_throttle_voxel:    true
+  voxel_throttle:           10
+  leaf_size:                0.01
+  reset_cloud_when_stopped: false
