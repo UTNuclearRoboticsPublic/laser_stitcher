@@ -13,6 +13,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <rosbag/bag.h>
 
+#include <pcl_ros/transforms.h>
+
+
 class LaserStitcher
 {
 public: 
@@ -42,7 +45,7 @@ private:
 	tf::TransformListener listener_;
 	tf::StampedTransform last_transform_;
 
-	pcl::VoxelGrid<pcl::PointXYZ> voxel_filter_;
+	//pcl::VoxelGrid<pcl::PointXYZ> voxel_filter_;
 	bool should_voxelize_;
 	bool should_throttle_voxel_;
 	int voxel_throttle_counter_;

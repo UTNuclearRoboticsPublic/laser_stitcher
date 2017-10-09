@@ -50,7 +50,7 @@ LaserStitcher::LaserStitcher()
 	last_transform_.setIdentity();
 
 	// ----- Subscribers, Publishers, Listeners -----
-	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 20, &LaserStitcher::laserCallback, this);
+	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 1, &LaserStitcher::laserCallback, this);
 	finish_sub_ = nh_.subscribe<std_msgs::Bool>(finished_topic, 20, &LaserStitcher::setScanningState, this);
 	reset_sub_ = nh_.subscribe<std_msgs::Bool>(reset_topic, 20, &LaserStitcher::resetCloud, this);
 	cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pointcloud_topic, 3);
@@ -68,8 +68,9 @@ LaserStitcher::LaserStitcher()
 		if(should_throttle_voxel_)
 			nh_.param("laser_stitcher/voxel_throttle", voxel_throttle_, 10);
 		nh_.param<float>("laser_stitcher/leaf_size", leaf_size_, 0.01);
-		voxel_filter_.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
+		//voxel_filter_.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
 	}
+	voxel_throttle_counter_ = 0;
 
 	nh_.param("laser_stitcher/reset_cloud_when_stopped", reset_cloud_when_stopped_, true);
 
@@ -114,18 +115,41 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 
 		    pcl::concatenatePointCloud(current_summed_cloud, new_planar_cloud, summed_pointcloud_);
 		    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught and stitched!");
-
+		    //ROS_ERROR_STREAM("original: " << current_summed_cloud.height*current_summed_cloud.width << " aaaand new: " << new_planar_cloud.height*new_planar_cloud.width);
 		    if(should_voxelize_)
 		    {
-		    	if(voxel_throttle_counter_ > voxel_throttle_)
+		    	if(voxel_throttle_counter_ == voxel_throttle_)
 		    	{
-		    		pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in;
-					pcl::PointCloud<pcl::PointXYZ> temp_pc_out;
+		    		pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
+		    		voxel_filter.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
+		    		pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in(new pcl::PointCloud<pcl::PointXYZ>());
+					pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_out(new pcl::PointCloud<pcl::PointXYZ>());
+					temp_pc_in->points.clear();
 					pcl::fromROSMsg(summed_pointcloud_, *temp_pc_in);
-					voxel_filter_.setInputCloud(temp_pc_in);
-					voxel_filter_.filter(temp_pc_out);
-					pcl::toROSMsg(temp_pc_out, summed_pointcloud_);
+					std::vector<int> index_source;
+		    		//ROS_ERROR_STREAM("pre-nan removal cloud size:   " << temp_pc_in->size());
+					pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in_nanless(new pcl::PointCloud<pcl::PointXYZ>());
+					temp_pc_in_nanless->points.clear();
+					pcl::removeNaNFromPointCloud(*temp_pc_in, *temp_pc_in_nanless, index_source);
+		    		//ROS_ERROR_STREAM("pre-voxelization cloud size:  " << temp_pc_in_nanless->size());
+					voxel_filter.setInputCloud(temp_pc_in);
+					temp_pc_out->points.clear();
+					voxel_filter.filter(*temp_pc_out);
+		    		//ROS_ERROR_STREAM("post-voxelization cloud size: " << temp_pc_out->size());
+					sensor_msgs::PointCloud2 temp_pc2;
+					pcl::toROSMsg(*temp_pc_out, temp_pc2); 
+					//ROS_ERROR_STREAM("post-filter msg size...       " << temp_pc2.height << " " << temp_pc2.width); 
+					//sensor_msgs::PointCloud2 temp_pc2_3;
+					//pcl_ros::transformPointCloud ("base_link", temp_pc2, temp_pc2_3, listener_);  	// transforms input_pc2 into process_message
+					summed_pointcloud_.data = temp_pc2.data;
+					summed_pointcloud_.height = temp_pc2.height;
+					summed_pointcloud_.width = temp_pc2.width;
+
+
+					//ROS_ERROR_STREAM("post-filter cloud size:       " << summed_pointcloud_.height*summed_pointcloud_.width);
+		    		voxel_throttle_counter_ = 0;
 		    	}
+		    	voxel_throttle_counter_++;
 		    }
 
 		    ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << publish_after_updating_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);

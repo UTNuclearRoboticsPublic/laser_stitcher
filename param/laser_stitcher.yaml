@@ -22,6 +22,6 @@ laser_stitcher:
   # voxel filter
   voxelize:                 true
   should_throttle_voxel:    true
-  voxel_throttle:           10
-  leaf_size:                0.01
+  voxel_throttle:           50
+  leaf_size:                0.1
   reset_cloud_when_stopped: false
