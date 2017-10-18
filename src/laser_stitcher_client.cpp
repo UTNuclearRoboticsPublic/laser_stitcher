@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
 		if(postprocess.request.tasks.size() != 0)
 		{
-			while(!client.call(postprocess))
+			while(!client.call(postprocess) && ros::ok())
 			{
 				ROS_ERROR("[LaserStitcherClient] Postprocessing call failed - trying again...");
 				ros::Duration(1.0).sleep();

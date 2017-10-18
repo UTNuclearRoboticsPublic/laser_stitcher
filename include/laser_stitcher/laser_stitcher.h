@@ -12,6 +12,8 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <rosbag/bag.h>
+#include <pointcloud_processing_server/pointcloud_process.h>
+#include <pointcloud_processing_server/pointcloud_task_creation.h>
 
 #include <pcl_ros/transforms.h>
 
@@ -26,6 +28,44 @@ private:
 	ros::Subscriber finish_sub_;
 	ros::Subscriber reset_sub_;
 	ros::Publisher cloud_pub_;
+
+	class StitchedCloud
+	{
+	public:
+		// Direct Output Stuff
+		std::string cloud_name_;
+		bool should_pub_;
+		bool incremental_update_;
+		bool should_save_;
+		ros::Publisher cloud_pub_;
+		
+		// Updating Options
+		bool retain_after_scan_;
+
+		// Initial Transform
+		bool should_transform_first_;
+		std::string first_transform_frame_;
+		// Clipping
+		bool should_clip_;
+		float clipping_dimensions_[6];
+		// Voxelization
+		bool should_voxelize_;
+		float voxel_leaf_size_;
+		bool throttle_voxelization_;
+		int voxel_throttle_max_;
+		int voxel_throttle_counter_;
+		// Final Transform
+		bool should_do_final_transform_;
+		std::string final_transform_frame_;
+
+		sensor_msgs::PointCloud2 cloud_;
+
+		void initializeFromYAML(std::string yaml_file_name);
+		void increment(sensor_msgs::PointCloud2 new_cloud);
+		void output();
+	};
+
+	std::vector<StitchedCloud> output_settings_;
 
 	bool is_running_;
 	bool save_data_;
@@ -54,6 +94,7 @@ private:
 
 	bool reset_cloud_when_stopped_;
 
+	bool buildSettings(std::string yaml_file_name);
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in);
 	void setScanningState(const std_msgs::Bool::ConstPtr& shut_down);
 	void resetCloud(const std_msgs::Bool::ConstPtr& placeholder);

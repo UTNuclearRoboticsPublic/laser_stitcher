@@ -52,13 +52,13 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 	ROS_DEBUG_STREAM("Servo Angle: " << servo_angle_ << " Max Angle: " << max_angle_);
 
 	// Turn counterclockwise while scanning:
-	while(servo_angle_ + angle_step_	 < max_angle_)
+	while(servo_angle_ + angle_step_	 < max_angle_ && ros::ok())
 	{
 		angle_msg.data = servo_angle_ + angle_step_;
 		angle_pub_.publish(angle_msg);
 
 		if(req.external_angle_sensing)
-			while(servo_angle_ < servo_angle_ + angle_step_);
+			while(servo_angle_ < servo_angle_ + angle_step_ && ros::ok());
 		else
 		{
 			ros::Duration(wait_time_).sleep();

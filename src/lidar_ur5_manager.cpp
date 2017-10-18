@@ -71,7 +71,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 
 	// Turn counterclockwise prior to scanning - get to 'max_angle' starting point:
 	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << max_angle_ << " at speed " << wrist_speed_returning_);
-	while(wrist_angle_ < max_angle_)
+	while(wrist_angle_ < max_angle_ && ros::ok())
 	{
 		char counterclockwise_cmd[200];
 		sprintf(counterclockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, %f], 0.8, 0.1)", wrist_speed_returning_);
@@ -96,7 +96,7 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 
 	// Turn clockwise while scanning - get to 'min_angle' stopping point:
 	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << min_angle_ << " at speed " << wrist_speed_);
-	while(wrist_angle_ > min_angle_)
+	while(wrist_angle_ > min_angle_ && ros::ok())
 	{
 		char clockwise_cmd[200];
 		sprintf(clockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, %f], 0.4, 0.1)", -wrist_speed_);
@@ -125,7 +125,7 @@ void LIDARUR5Manager::getOutputCloud(std::string output_cloud_topic)
 {
 	still_need_cloud_ = true;
 	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic, 1, &LIDARUR5Manager::cloudCallback, this);
-	while(still_need_cloud_)
+	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
 	}
@@ -160,7 +160,7 @@ bool LIDARUR5Manager::updateJoints()
 	correct_callbacks_ = 0;
 	ros::Duration time_elapsed;
 	ros::Time time_started = ros::Time::now();
-	while(correct_callbacks_ < 1 && callbacks_received_ < 100 && time_elapsed < ros::Duration(2.0))
+	while(correct_callbacks_ < 1 && callbacks_received_ < 100 && time_elapsed < ros::Duration(2.0) && ros::ok())
 	{
 		ros::Duration(wait_time_).sleep();
 		joint_state_queue_.callAvailable(ros::WallDuration());

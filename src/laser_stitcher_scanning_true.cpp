@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 
      //Ceates the publisher, and tells it to publish
      ros::Publisher pub=nh.advertise<std_msgs::Bool>("laser_stitcher/scanning_state", 1);
-     while(pub.getNumSubscribers() == 0)
+     while(pub.getNumSubscribers() == 0 && ros::ok())
         {rate.sleep();}
 
      //Sets up the random number generator
