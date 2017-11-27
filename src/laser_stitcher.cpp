@@ -14,11 +14,14 @@ LaserStitcher::LaserStitcher()
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
+	nh_.param<std::string>("laser_stitcher/reset_topic", reset_topic, "reset_map_scan");
+	nh_.param<std::string>("laser_stitcher/finished_topic", finished_topic, "laser_scan_finished");
 
 	// ----- Movement Check -----
 	nh_.param<bool>("laser_stitcher/should_check_movement", should_check_movement_, true);
 	nh_.param<float>("laser_stitcher/distance_threshold", distance_threshold_, 0.02);	
 	nh_.param<float>("laser_stitcher/angle_threshold", angle_threshold_, 0.05);  
+	nh_.param<std::string>("laser_stitcher/target_frame", target_frame_, "map");
 	/*
 	tf::Quaternion zero_rotation(0.0, 0.0, 0.0, 1.0);
 	tf::Vector3 zero_vector(0.0, 0.0, 0.0);
@@ -48,6 +51,8 @@ LaserStitcher::LaserStitcher()
 	}
 	this->buildSettings(yaml_file_name);
 
+	postprocessor_ = nh_.serviceClient<pointcloud_processing_server::pointcloud_process>("pointcloud_service");
+
 	ros::Duration(0.50).sleep();
 	ROS_INFO_STREAM("[LaserStitcher] Stitcher online and ready.");
 
@@ -57,7 +62,7 @@ LaserStitcher::LaserStitcher()
 
 bool LaserStitcher::buildSettings(std::string yaml_file_name)
 {
-	std::string cloud_list;
+	std::vector<std::string> cloud_list;
 	if(!nh_.getParam(yaml_file_name + "/cloud_list", cloud_list))
 	{
 		ROS_ERROR_STREAM("[LaserStitcher] Failed to get list of output cloud names from the parameters server. Settings initialization failed.");
@@ -73,41 +78,23 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 		cloud_options.cloud_name_ = cloud_list[i];
 		cloud_options.cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("laser_stitcher/" + cloud_list[i],1,this);
 
-		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "incremental_update", cloud_options.incremental_update_, true);
-		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "retain_after_scan", cloud_options.retain_after_scan_, true);
-		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_pub", cloud_options.should_pub_, true);
-		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_save", cloud_options.should_save_, true);
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/incremental_update", cloud_options.incremental_update_, true);
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/retain_after_scan", cloud_options.retain_after_scan_, true);
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/should_pub", cloud_options.should_pub_, true);
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/should_save", cloud_options.should_save_, true);
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/should_postprocess", cloud_options.should_postprocess_, false);
 
-		if(nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_transform_first", cloud_options.should_transform_first_, false))
-			if(!nh_.param<std::string>(yaml_file_name + "/" + cloud_list[i] + "first_transform_frame", cloud_options.first_transform_frame_, "map"))
-			{
-				ROS_ERROR_STREAM("[LaserStitcher] Initial Transform requested for output " << cloud_list[i] << ", but target frame not found in parameter server. Setting to not perform an initial transform.");
-				cloud_options.should_transform_first_ = false;
-			}
-		if(nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_voxelize", cloud_options.should_voxelize_, false))
+		if(cloud_options.should_postprocess_)
 		{
-			if(!nh_.param<float>(yaml_file_name + "/" + cloud_list[i] + "voxel_leaf_size", cloud_options.voxel_leaf_size_, 0.01))
-				ROS_ERROR_STREAM("[LaserStitcher] Voxelization requested for output " << cloud_list[i] << ", but leaf size not found in parameter server. Setting voxel size to " << cloud_options.voxel_leaf_size_);
-			if(!nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "throttle_voxelization", cloud_options.throttle_voxelization_, false))
-			if(cloud_options.throttle_voxelization_)
-				if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "voxel_throttle_max", cloud_options.voxel_throttle_max_, 50))
-					ROS_ERROR_STREAM("[LaserStitcher] Voxelization throttling requested for output " << cloud_list[i] << ", but leaf size not found in parameter server. Setting voxel throttle to " << cloud_options.voxel_throttle_max_);
+			pointcloud_processing_server::pointcloud_process postprocess;
+			PointcloudTaskCreation::processFromYAML(&postprocess, cloud_list[i], yaml_file_name);
+			cloud_options.postprocess_ = postprocess;
+			
+			nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/throttle_postprocess", cloud_options.throttle_postprocess_, false);
+			if(cloud_options.throttle_postprocess_)
+				if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "/postprocess_throttle_max", cloud_options.postprocess_throttle_max_, 50))
+					ROS_WARN_STREAM("[LaserStitcher] Voxelization throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting voxel throttle to " << cloud_options.voxel_throttle_max_);
 		}
-		if(nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_clip", cloud_options.should_clip_, false))
-		{
-			std::vector<float> clipping_dimensions;
-			if(!nh_.getParam(yaml_file_name + "/" + cloud_list[i] + "first_transform_frame", clipping_dimensions))
-			{
-				ROS_ERROR_STREAM("[LaserStitcher] Clipping requested for output " << cloud_list[i] << ", but clipping dimensions not found in parameter server. Setting to not perform clipping.");
-				cloud_options.should_clip_ = false;
-			}
-		}
-		if(nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "should_do_final_transform", cloud_options.should_do_final_transform_, false))
-			if(!nh_.param<std::string>(yaml_file_name + "/" + cloud_list[i] + "final_transform_frame", cloud_options.final_transform_frame_, "map"))
-			{
-				ROS_ERROR_STREAM("[LaserStitcher] Final Transform requested for output " << cloud_list[i] << ", but target frame not found in parameter server. Setting to not perform a final transform.");
-				cloud_options.should_do_final_transform_ = false;
-			}
 
 		output_settings_.push_back(cloud_options);
 	}
@@ -150,46 +137,30 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 			    pcl::concatenatePointCloud(previous_cloud_state, new_planar_cloud, output_settings_[i].cloud_);
 			    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught and stitched!");
 			    //ROS_ERROR_STREAM("original: " << previous_cloud_state.height*previous_cloud_state.width << " aaaand new: " << new_planar_cloud.height*new_planar_cloud.width);
-			    if(output_settings_[i].should_voxelize_)
+			    if(output_settings_[i].should_postprocess_)
 			    {
-			    	if(output_settings_[i].throttle_voxelization_)
+			    	bool postprocess = true;
+			    	if(output_settings_[i].throttle_postprocess_)
 			    	{
-				    	if(output_settings_[i].voxel_throttle_counter_ >= output_settings_[i].voxel_throttle_max_)
+				    	if(output_settings_[i].postprocess_throttle_counter_ < output_settings_[i].postprocess_throttle_max_)
 				    	{
-				    		pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
-				    		voxel_filter.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
-				    		pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in(new pcl::PointCloud<pcl::PointXYZ>());
-							pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_out(new pcl::PointCloud<pcl::PointXYZ>());
-							temp_pc_in->points.clear();
-							pcl::fromROSMsg(output_settings_[i].cloud_, *temp_pc_in);
-							std::vector<int> index_source;
-				    		//ROS_ERROR_STREAM("pre-nan removal cloud size:   " << temp_pc_in->size());
-							pcl::PointCloud<pcl::PointXYZ>::Ptr temp_pc_in_nanless(new pcl::PointCloud<pcl::PointXYZ>());
-							temp_pc_in_nanless->points.clear();
-							pcl::removeNaNFromPointCloud(*temp_pc_in, *temp_pc_in_nanless, index_source);
-				    		//ROS_ERROR_STREAM("pre-voxelization cloud size:  " << temp_pc_in_nanless->size());
-							voxel_filter.setInputCloud(temp_pc_in);
-							temp_pc_out->points.clear();
-							voxel_filter.filter(*temp_pc_out);
-				    		//ROS_ERROR_STREAM("post-voxelization cloud size: " << temp_pc_out->size());
-							sensor_msgs::PointCloud2 temp_pc2;
-							pcl::toROSMsg(*temp_pc_out, temp_pc2); 
-							//ROS_ERROR_STREAM("post-filter msg size...       " << temp_pc2.height << " " << temp_pc2.width); 
-							//sensor_msgs::PointCloud2 temp_pc2_3;
-							//pcl_ros::transformPointCloud ("base_link", temp_pc2, temp_pc2_3, listener_);  	// transforms input_pc2 into process_message
-							output_settings_[i].cloud_.data = temp_pc2.data;
-							output_settings_[i].cloud_.height = temp_pc2.height;
-							output_settings_[i].cloud_.width = temp_pc2.width;
-
-							//ROS_ERROR_STREAM("post-filter cloud size:       " << summed_pointcloud_.height*summed_pointcloud_.width);
-				    		output_settings_[i].voxel_throttle_counter_ = 0;
+					    	postprocess = false;
+			    			output_settings_[i].postprocess_throttle_counter_++;
 				    	}
-			    		output_settings_[i].voxel_throttle_counter_++;
+				    	else
+				    		output_settings_[i].postprocess_throttle_counter_ = 0;
 			    	}
-			    	ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << output_settings_[i].incremental_update_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
-				    if(output_settings_[i].incremental_update_)
-		    			output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
+			    	ROS_INFO_STREAM(output_settings_[i].cloud_name_ << " " << postprocess << " " << output_settings_[i].postprocess_throttle_counter_ << " " << output_settings_[i].postprocess_throttle_max_);
+			    	if(postprocess)
+			    	{
+			    		output_settings_[i].postprocess_.request.pointcloud = output_settings_[i].cloud_;
+			    		postprocessor_.call(output_settings_[i].postprocess_);
+			    		//output_settings_[i].cloud_ = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()].task_pointcloud;
+			    	}
 			    }
+		    	ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << output_settings_[i].incremental_update_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
+			    if(output_settings_[i].incremental_update_)
+	    			output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
 			}
 
 		}
@@ -208,21 +179,23 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 { 
 	if(!(is_running->data) && is_running_)			// Turning off, after it's been on
 	{
-		if(save_data_)
+		for(int i=0; i<output_settings_.size(); i++)
 		{
-			ROS_INFO_STREAM("[LaserStitcher] Saving a pointcloud...");
-			rosbag::Bag bag;
-			bag.open(bag_name_+".bag", rosbag::bagmode::Write);
-			bag.write(cloud_pub_.getTopic(), ros::Time::now(), summed_pointcloud_);
-			ROS_INFO_STREAM("[LaserStitcher] Saved a ROSBAG to the file " << bag_name_+".bag");
-		}
-		cloud_pub_.publish(summed_pointcloud_);
-		ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine. Final cloud size: " << summed_pointcloud_.height*summed_pointcloud_.width << ".");
+			if(output_settings_[i].should_save_)
+			{
+				rosbag::Bag bag;
+				bag.open(output_settings_[i].cloud_name_+".bag", rosbag::bagmode::Write);
+				bag.write(output_settings_[i].cloud_pub_.getTopic(), ros::Time::now(), output_settings_[i].cloud_);
+				ROS_INFO_STREAM("[LaserStitcher] Saved a ROSBAG to the file " << output_settings_[i].cloud_name_+".bag");
+			}
+			output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
+			ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine on cloud " << output_settings_[i].cloud_name_ << ". Final cloud size: " << output_settings_[i].cloud_.height*output_settings_[i].cloud_.width << ".");
 
-		if(reset_cloud_when_stopped_)
-		{
-			sensor_msgs::PointCloud2Modifier cloud_modifier_(summed_pointcloud_);
-			cloud_modifier_.resize(0);
+			if(output_settings_[i].retain_after_scan_)
+			{
+				sensor_msgs::PointCloud2Modifier cloud_modifier_(output_settings_[i].cloud_);
+				cloud_modifier_.resize(0);
+			}
 		}
 	}
 	else if(is_running->data && !is_running_)		// Turning on, after it's been off

@@ -1,8 +1,11 @@
 
 laser_stitcher:
+  yaml_file_name:           laser_stitcher_output
   target_frame:             map
   # topics
   laser_topic:              hokuyo_scan
+  reset_topic:              reset_map_scan
+  finished_topic:           laser_scan_finished
   finished_topic:           laser_stitcher/scanning_state
   pointcloud_topic:         laser_stitcher/output_cloud
   # laser_stitching

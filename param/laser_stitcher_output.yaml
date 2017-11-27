@@ -8,8 +8,10 @@ laser_stitcher_output:
     publish:            true
     save:               false
     # Postprocessing Data
-    postprocess:          true
-    min_cloud_size:       50
+    should_postprocess:             true
+    min_cloud_size:                 50
+    throttle_postprocess:           true
+    postprocess_throttle_max:       50
     # NOTE - task names in task_list below MUST match the subheadings under the tasks heading
     task_list:            [ clip, voxelize, transform ]
     tasks:
@@ -37,4 +39,4 @@ laser_stitcher_output:
     publish:            true
     save:               true
     # Postprocessing Data
-    postprocess:          false
+    should_postprocess:             false

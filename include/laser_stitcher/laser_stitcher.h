@@ -37,7 +37,14 @@ private:
 		bool should_pub_;
 		bool incremental_update_;
 		bool should_save_;
+		bool should_postprocess_;
 		ros::Publisher cloud_pub_;
+
+		// Postprocessing
+		bool throttle_postprocess_;
+		int postprocess_throttle_counter_;
+		int postprocess_throttle_max_;
+		pointcloud_processing_server::pointcloud_process postprocess_;
 		
 		// Updating Options
 		bool retain_after_scan_;
@@ -76,6 +83,8 @@ private:
 	float sleepy_time_;
 	int publishing_throttle_;
 	int throttle_index_;
+
+	ros::ServiceClient postprocessor_;
 
 	bool should_check_movement_;
 	float distance_threshold_;

@@ -5,6 +5,6 @@ lidar_ur5_manager:
   service_name:           laser_stitcher/stationary_scan
   min_angle:              -1.65
   max_angle:              1.65
-  wrist_speed:            0.4
+  wrist_speed:            0.1
   fixed_start_pose:       false
   start_pose:             [ 1 ]
