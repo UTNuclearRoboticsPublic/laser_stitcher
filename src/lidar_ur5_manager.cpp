@@ -10,6 +10,8 @@ LIDARUR5Manager::LIDARUR5Manager()
 	std::string scanning_state_topic;
 	nh_.param<std::string>("lidar_ur5_manager/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
+
+	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_cloud_topic_, "laser_stitcher/output_cloud");
 	
 	// Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
 	joint_state_nh_.setCallbackQueue(&joint_state_queue_);
@@ -42,8 +44,19 @@ LIDARUR5Manager::LIDARUR5Manager()
 bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res)
 { 
 	ROS_INFO_STREAM("[LIDARUR5Manager] Received stationary_scan service callback. Finding jointstate...");
-	if(!this->updateJoints())
+	int joint_update_attempts = 0;
+	int max_joint_update_attempts = 5;
+	while(!this->updateJoints() && joint_update_attempts < max_joint_update_attempts)
+	{
+		ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints " << joint_update_attempts << " times.");
+		joint_update_attempts++;
+		ros::Duration(0.05).sleep();
+	}
+	if(joint_update_attempts >= max_joint_update_attempts)
+	{
+		ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints too many times... exiting this service call.");
 		return false;
+	}
 
 	// Move wrist to start position:
 	char start_cmd[200];
@@ -66,8 +79,8 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 		scanning_state.data = true;
 		scanning_state_pub_.publish(scanning_state);
 		ROS_INFO_STREAM("[LIDARUR5Manager] Sending scanning start message.");
-		ros::Duration(0.5).sleep();
 	}
+	ros::Duration(0.15).sleep();
 
 	// Turn counterclockwise prior to scanning - get to 'max_angle' starting point:
 	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << max_angle_ << " at speed " << wrist_speed_returning_);
@@ -80,8 +93,19 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 		counterclockwise_msg.data = counterclockwise_cmd;
 		urscript_pub_.publish(counterclockwise_msg);
 		
-		if(!this->updateJoints())
+		int joint_update_attempts = 0;
+		int max_joint_update_attempts = 5;
+		while(!this->updateJoints() && joint_update_attempts < max_joint_update_attempts)
+		{
+			ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints " << joint_update_attempts << " times.");
+			joint_update_attempts++;
+			ros::Duration(0.05).sleep();
+		}
+		if(joint_update_attempts >= max_joint_update_attempts)
+		{
+			ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints too many times... exiting this service call.");
 			return false;
+		}
 
 		ROS_DEBUG_STREAM("[LIDARUR5Manager] Sent a counterclockwise motion command. Current position: " << wrist_angle_);
 	}
@@ -91,8 +115,8 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 		scanning_state.data = true;
 		scanning_state_pub_.publish(scanning_state);
 		ROS_INFO_STREAM("[LIDARUR5Manager] Sending scanning start message.");
-		ros::Duration(0.5).sleep();
 	}
+	ros::Duration(0.15).sleep();
 
 	// Turn clockwise while scanning - get to 'min_angle' stopping point:
 	ROS_INFO_STREAM("[LIDARUR5Manager] Moving wrist towards point " << min_angle_ << " at speed " << wrist_speed_);
@@ -100,17 +124,28 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	{
 		char clockwise_cmd[200];
 		sprintf(clockwise_cmd, "speedj([0.0, 0.0, 0.0, 0.0, 0.0, %f], 0.4, 0.1)", -wrist_speed_);
-		ROS_DEBUG_STREAM("[LIDARUR5Manager] Clockwise command:  " << clockwise_cmd);
+		ROS_DEBUG_STREAM("[LIDARUR5Manager] Clockwise command:  " << clockwise_cmd << " Min Angle: " << min_angle_ << " Current Angle: " << wrist_angle_ << " Current Command Speed: " << wrist_speed_);
 		std_msgs::String clockwise_msg;
 		clockwise_msg.data = clockwise_cmd;
 		urscript_pub_.publish(clockwise_msg);
 		
-		if(!this->updateJoints())
+		int joint_update_attempts = 0;
+		int max_joint_update_attempts = 5;
+		while(!this->updateJoints() && joint_update_attempts < max_joint_update_attempts)
+		{
+			ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints " << joint_update_attempts << " times.");
+			joint_update_attempts++;
+			ros::Duration(0.05).sleep();
+		}
+		if(joint_update_attempts >= max_joint_update_attempts)
+		{
+			ROS_ERROR_STREAM("[LIDARUR5Manager] Failed to update joints too many times... exiting this service call.");
 			return false;
+		}
 
 		ROS_DEBUG_STREAM("[LIDARUR5Manager] Sent a counterclockwise motion command. Current position: " << wrist_angle_);
 	}
-	getOutputCloud("laser_stitcher/output_cloud");
+	getOutputCloud();
 	res.output_cloud = output_cloud_;
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[LIDARUR5Manager] About to publish turn scanning routine off message");
@@ -121,10 +156,10 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 }
 
 
-void LIDARUR5Manager::getOutputCloud(std::string output_cloud_topic)
+void LIDARUR5Manager::getOutputCloud()
 {
 	still_need_cloud_ = true;
-	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic, 1, &LIDARUR5Manager::cloudCallback, this);
+	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic_, 1, &LIDARUR5Manager::cloudCallback, this);
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();

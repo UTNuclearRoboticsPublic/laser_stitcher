@@ -84,6 +84,14 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/should_save", cloud_options.should_save_, true);
 		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/should_postprocess", cloud_options.should_postprocess_, false);
 
+		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/throttle_publish", cloud_options.throttle_publish_, false);
+		if(cloud_options.throttle_publish_)
+		{
+			if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "/publishing_throttle_max", cloud_options.publishing_throttle_max_, 5))
+				ROS_WARN_STREAM("[LaserStitcher] Publishing throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting publish throttle to " << cloud_options.voxel_throttle_max_);
+			cloud_options.publishing_throttle_counter_ = 0;
+		}
+
 		if(cloud_options.should_postprocess_)
 		{
 			pointcloud_processing_server::pointcloud_process postprocess;
@@ -92,8 +100,12 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 			
 			nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/throttle_postprocess", cloud_options.throttle_postprocess_, false);
 			if(cloud_options.throttle_postprocess_)
+			{
 				if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "/postprocess_throttle_max", cloud_options.postprocess_throttle_max_, 50))
-					ROS_WARN_STREAM("[LaserStitcher] Voxelization throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting voxel throttle to " << cloud_options.voxel_throttle_max_);
+					ROS_WARN_STREAM("[LaserStitcher] Postprocessing throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting voxel throttle to " << cloud_options.voxel_throttle_max_);
+				cloud_options.postprocess_throttle_counter_ = 0;
+			}
+			
 		}
 
 		output_settings_.push_back(cloud_options);
@@ -150,17 +162,38 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 				    	else
 				    		output_settings_[i].postprocess_throttle_counter_ = 0;
 			    	}
-			    	ROS_INFO_STREAM(output_settings_[i].cloud_name_ << " " << postprocess << " " << output_settings_[i].postprocess_throttle_counter_ << " " << output_settings_[i].postprocess_throttle_max_);
+			    	ROS_DEBUG_STREAM(output_settings_[i].cloud_name_ << " " << postprocess << " " << output_settings_[i].postprocess_throttle_counter_ << " " << output_settings_[i].postprocess_throttle_max_);
 			    	if(postprocess)
 			    	{
 			    		output_settings_[i].postprocess_.request.pointcloud = output_settings_[i].cloud_;
 			    		postprocessor_.call(output_settings_[i].postprocess_);
-			    		//output_settings_[i].cloud_ = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()].task_pointcloud;
+			    		
+			    		sensor_msgs::PointCloud2Modifier cloud_modifier_(output_settings_[i].cloud_);
+						cloud_modifier_.resize(0);
+
+			    		sensor_msgs::PointCloud2 temp_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
+			    		
+			    		output_settings_[i].cloud_.width = temp_cloud.width*2;
+			    		output_settings_[i].cloud_.data = temp_cloud.data;
 			    	}
 			    }
 		    	ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << output_settings_[i].incremental_update_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
 			    if(output_settings_[i].incremental_update_)
-	    			output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
+		    	{
+			    	bool publish = true;
+			    	if(output_settings_[i].throttle_publish_)
+			    	{
+			    		if(output_settings_[i].publishing_throttle_counter_ < output_settings_[i].publishing_throttle_max_)
+			    		{
+			    			publish = false;
+			    			output_settings_[i].publishing_throttle_counter_++;
+			    		}
+			    		else
+			    			output_settings_[i].publishing_throttle_counter_ = 0;
+			    	}
+			    	if(publish)
+	    				output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
+				}
 			}
 
 		}
@@ -191,7 +224,7 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 			output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
 			ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine on cloud " << output_settings_[i].cloud_name_ << ". Final cloud size: " << output_settings_[i].cloud_.height*output_settings_[i].cloud_.width << ".");
 
-			if(output_settings_[i].retain_after_scan_)
+			if(!output_settings_[i].retain_after_scan_)
 			{
 				sensor_msgs::PointCloud2Modifier cloud_modifier_(output_settings_[i].cloud_);
 				cloud_modifier_.resize(0);

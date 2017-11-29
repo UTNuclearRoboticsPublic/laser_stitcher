@@ -18,7 +18,7 @@ public:
 	bool stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res);
 	void jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states);
 	bool updateJoints();
-	void getOutputCloud(std::string output_cloud_topic);
+	void getOutputCloud();
 	void cloudCallback(const sensor_msgs::PointCloud2 output_cloud);
 
 private:
@@ -46,6 +46,8 @@ private:
 	ros::Publisher scanning_state_pub_;
 	ros::Subscriber joint_state_sub_;
 	ros::Subscriber output_cloud_sub_;
+
+	std::string output_cloud_topic_;
 
 	sensor_msgs::PointCloud2 output_cloud_;
 	bool still_need_cloud_;

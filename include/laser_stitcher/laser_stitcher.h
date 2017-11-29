@@ -34,13 +34,18 @@ private:
 	public:
 		// Direct Output Stuff
 		std::string cloud_name_;
+		
+		// Publishing
 		bool should_pub_;
 		bool incremental_update_;
-		bool should_save_;
-		bool should_postprocess_;
 		ros::Publisher cloud_pub_;
+		bool throttle_publish_;
+		int publishing_throttle_counter_;
+		int publishing_throttle_max_;
+		bool should_save_;
 
 		// Postprocessing
+		bool should_postprocess_;
 		bool throttle_postprocess_;
 		int postprocess_throttle_counter_;
 		int postprocess_throttle_max_;
@@ -81,8 +86,6 @@ private:
 	std::string target_frame_;
 	sensor_msgs::PointCloud2 summed_pointcloud_;
 	float sleepy_time_;
-	int publishing_throttle_;
-	int throttle_index_;
 
 	ros::ServiceClient postprocessor_;
 
