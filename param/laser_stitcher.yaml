@@ -20,7 +20,7 @@ laser_stitcher:
   distance_threshold:       0.02
   angle_threshold:          0.05
   # client stuff 
-  should_loop:              false
+  should_loop:              true
   postprocessing_file_name: laser_stitcher_postprocess
   # voxel filter
   voxelize:                 true
