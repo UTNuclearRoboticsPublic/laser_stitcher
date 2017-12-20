@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include "laser_stitcher/stationary_scan.h"
+#include "laser_stitcher/stitched_clouds.h"
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -18,8 +19,8 @@ public:
 	bool stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res);
 	void jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states);
 	bool updateJoints();
-	void getOutputCloud();
-	void cloudCallback(const sensor_msgs::PointCloud2 output_cloud);
+	void getOutputClouds();
+	void outputCallback(const laser_stitcher::stitched_clouds output_clouds);
 
 private:
 	float max_angle_;
@@ -47,9 +48,10 @@ private:
 	ros::Subscriber joint_state_sub_;
 	ros::Subscriber output_cloud_sub_;
 
-	std::string output_cloud_topic_;
+	std::string output_clouds_topic_;
+	std::vector<std::string> output_cloud_names_;
 
-	sensor_msgs::PointCloud2 output_cloud_;
+	std::vector<sensor_msgs::PointCloud2> output_clouds_;
 	bool still_need_cloud_;
 };
 

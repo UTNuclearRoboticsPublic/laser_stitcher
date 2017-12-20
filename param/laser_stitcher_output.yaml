@@ -15,7 +15,7 @@ laser_stitcher_output:
     throttle_postprocess:           true
     postprocess_throttle_max:       25
     # NOTE - task names in task_list below MUST match the subheadings under the tasks heading
-    task_list:            [ clip, voxelize, transform ]
+    task_list:            [ clip, voxelize ]
     tasks:
       transform:
         type:             1     # Transformation
@@ -39,7 +39,7 @@ laser_stitcher_output:
     publish:                    true
     incremental_update:         true
     throttle_publish:           true
-    publishing_throttle_max:    25
+    publishing_throttle_max:    50
     retain_after_scan:          true
     save:                       true
     # Postprocessing Data
@@ -48,7 +48,7 @@ laser_stitcher_output:
     throttle_postprocess:           true
     postprocess_throttle_max:       50
     # NOTE - task names in task_list below MUST match the subheadings under the tasks heading
-    task_list:            [ clip, voxelize, transform ]
+    task_list:            [ clip, voxelize ]
     tasks:
       transform:
         type:             1     # Transformation

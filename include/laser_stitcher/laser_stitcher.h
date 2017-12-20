@@ -15,6 +15,8 @@
 #include <pointcloud_processing_server/pointcloud_process.h>
 #include <pointcloud_processing_server/pointcloud_task_creation.h>
 
+#include "laser_stitcher/stitched_clouds.h"
+
 #include <pcl_ros/transforms.h>
 
 
@@ -105,6 +107,9 @@ private:
 	float leaf_size_;
 
 	bool reset_cloud_when_stopped_;
+
+	laser_stitcher::stitched_clouds output_cloud_list_;
+	ros::Publisher output_cloud_list_pub_;
 
 	bool buildSettings(std::string yaml_file_name);
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in);

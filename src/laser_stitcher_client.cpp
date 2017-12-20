@@ -10,11 +10,6 @@ int main(int argc, char** argv)
 
 	ros::NodeHandle nh;
 	ros::ServiceClient scanning_client = nh.serviceClient<laser_stitcher::stationary_scan>("laser_stitcher/stationary_scan");
-	ros::ServiceClient client = nh.serviceClient<pointcloud_processing_server::pointcloud_process>("pointcloud_service");
-	ros::Publisher final_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("laser_stitcher/final_cloud", 1);
-
-	std::string postprocessing_file_name;
-	nh.param<std::string>("laser_stitcher/postprocessing_file_name", postprocessing_file_name, "laser_stitcher_postprocess");
 
 	bool should_loop;
 	nh.param<bool>("laser_stitcher/should_loop", should_loop, false);
@@ -35,33 +30,19 @@ int main(int argc, char** argv)
 		{
 			
 			if( ! scanning_client.call(scan_srv) )
-				ROS_INFO_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
+				ROS_WARN_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
 			else
-				ROS_ERROR_STREAM("[LaserStitcherClient] Successfully called scanning service - pointcloud output size is " << scan_srv.response.output_cloud.height*scan_srv.response.output_cloud.width << ".");
+			{	
+				ROS_INFO_STREAM("[LaserStitcherClient] Successfully called scanning service.");
+				for(int i=0; i<scan_srv.response.output_clouds.size(); i++)
+				{
+					ROS_INFO_STREAM("\t " << scan_srv.response.cloud_names[i] << " cloud size: " << scan_srv.response.output_clouds[i].height*scan_srv.response.output_clouds[i].width << " in frame " << scan_srv.response.output_clouds[i].header.frame_id);
+				}
+			}
 			
 			break;
 		}
-/*
-		pointcloud_processing_server::pointcloud_process postprocess;
-		postprocess.request.pointcloud = scan_srv.response.output_cloud;
-		PointcloudTaskCreation::processFromYAML(&postprocess, postprocessing_file_name, "pointcloud_process");
 
-		if(postprocess.request.tasks.size() != 0)
-		{
-			while(!client.call(postprocess) && ros::ok())
-			{
-				ROS_ERROR("[LaserStitcherClient] Postprocessing call failed - trying again...");
-				ros::Duration(1.0).sleep();
-			}
-
-			int postprocess_length = postprocess.request.tasks.size();
-			sensor_msgs::PointCloud2 final_cloud = postprocess.response.task_results[postprocess_length-1].task_pointcloud;
-			ROS_INFO_STREAM("[LaserStitcherClient] Publishing final cloud! Size: " << final_cloud.height*final_cloud.width);
-			final_cloud_pub.publish(final_cloud);
-		}
-		else
-			ROS_WARN_STREAM("[LaserStitcherClient] Not preforming postprocessing - failed to get tasks from server. Probably something wrong with yaml files / parameters. Looked for tasks at " << postprocessing_file_name);
-*/
 		// If we shouldn't loop, break the loop
 		if(!should_loop)
 			break;

@@ -18,7 +18,7 @@ LaserStitcher::LaserStitcher()
 	nh_.param<std::string>("laser_stitcher/finished_topic", finished_topic, "laser_scan_finished");
 
 	// ----- Movement Check -----
-	nh_.param<bool>("laser_stitcher/should_check_movement", should_check_movement_, true);
+	nh_.param<bool>("laser_stitcher/should_check_movement", should_check_movement_, false);
 	nh_.param<float>("laser_stitcher/distance_threshold", distance_threshold_, 0.02);	
 	nh_.param<float>("laser_stitcher/angle_threshold", angle_threshold_, 0.05);  
 	nh_.param<std::string>("laser_stitcher/target_frame", target_frame_, "map");
@@ -52,6 +52,8 @@ LaserStitcher::LaserStitcher()
 	this->buildSettings(yaml_file_name);
 
 	postprocessor_ = nh_.serviceClient<pointcloud_processing_server::pointcloud_process>("pointcloud_service");
+
+	output_cloud_list_pub_ = nh_.advertise<laser_stitcher::stitched_clouds>("laser_stitcher/output_cloud_list", 1, this);
 
 	ros::Duration(0.50).sleep();
 	ROS_INFO_STREAM("[LaserStitcher] Stitcher online and ready.");
@@ -129,6 +131,9 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 	 		//return;
 	  	}
 
+	  	output_cloud_list_.cloud_names.clear();
+	  	output_cloud_list_.clouds.clear();		// Clear all output clouds from publishing message
+
 	  	bool add_cloud = true;
 	  	if(should_check_movement_)
 	  		add_cloud = lidarHasMoved(scan_in->header.frame_id);
@@ -140,7 +145,6 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 	  		//ROS_ERROR_STREAM(frames_found);
 		  	sensor_msgs::PointCloud2 new_planar_cloud;
 		  	scan_converter_.transformLaserScanToPointCloud(target_frame_, *scan_in, new_planar_cloud, listener_);
-
 		  	for(int i=0; i<output_settings_.size(); i++)
 		  	{
 			  	sensor_msgs::PointCloud2 new_summed_cloud;
@@ -194,9 +198,13 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 			    	if(publish)
 	    				output_settings_[i].cloud_pub_.publish(output_settings_[i].cloud_);
 				}
+
+				output_cloud_list_.clouds.push_back(output_settings_[i].cloud_);
+				output_cloud_list_.cloud_names.push_back(output_settings_[i].cloud_name_);
 			}
 
 		}
+		output_cloud_list_pub_.publish(output_cloud_list_);
     }
     else 
     	ros::Duration(sleepy_time_).sleep();

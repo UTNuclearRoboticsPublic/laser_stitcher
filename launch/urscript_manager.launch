@@ -19,7 +19,6 @@
       pkg     = "laser_stitcher"
       type    = "lidar_ur5_manager"
       args    = ""
-      output  = "screen"
     >
     </node>
     
@@ -37,7 +36,6 @@
       pkg     = "pointcloud_processing_server"
       type    = "pointcloud_processing_server"
       args    = ""
-      output  = "screen"
     >
     </node>
 

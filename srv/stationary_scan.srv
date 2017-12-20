@@ -5,4 +5,5 @@ bool external_angle_sensing
 
 ---
 
-sensor_msgs/PointCloud2 output_cloud
+string[] cloud_names
+sensor_msgs/PointCloud2[] output_clouds

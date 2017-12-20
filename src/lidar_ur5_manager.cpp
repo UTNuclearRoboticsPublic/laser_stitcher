@@ -11,7 +11,7 @@ LIDARUR5Manager::LIDARUR5Manager()
 	nh_.param<std::string>("lidar_ur5_manager/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 
-	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_cloud_topic_, "laser_stitcher/output_cloud");
+	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");
 	
 	// Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
 	joint_state_nh_.setCallbackQueue(&joint_state_queue_);
@@ -145,8 +145,16 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 
 		ROS_DEBUG_STREAM("[LIDARUR5Manager] Sent a counterclockwise motion command. Current position: " << wrist_angle_);
 	}
-	getOutputCloud();
-	res.output_cloud = output_cloud_;
+
+	output_cloud_names_.clear();
+	output_clouds_.clear();
+	getOutputClouds();
+	for(int i=0; i<output_clouds_.size(); i++)
+	{
+		res.cloud_names.push_back(output_cloud_names_[i]);
+		res.output_clouds.push_back(output_clouds_[i]);
+	}
+
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[LIDARUR5Manager] About to publish turn scanning routine off message");
 	scanning_state_pub_.publish(scanning_state); 			// Shut down laser stitcher process
@@ -156,21 +164,25 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 }
 
 
-void LIDARUR5Manager::getOutputCloud()
+void LIDARUR5Manager::getOutputClouds()
 {
 	still_need_cloud_ = true;
-	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic_, 1, &LIDARUR5Manager::cloudCallback, this);
+	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &LIDARUR5Manager::outputCallback, this);
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
 	}
 }
 
-void LIDARUR5Manager::cloudCallback(const sensor_msgs::PointCloud2 output_cloud)
+void LIDARUR5Manager::outputCallback(const laser_stitcher::stitched_clouds output_clouds)
 {
 	if(still_need_cloud_)
 	{
-		output_cloud_ = output_cloud;
+		for(int i=0; i<output_clouds.clouds.size(); i++)
+		{
+			output_cloud_names_.push_back(output_clouds.cloud_names[i]);
+			output_clouds_.push_back(output_clouds.clouds[i]);
+		}
 		still_need_cloud_ = false;
 	}
 	output_cloud_sub_.shutdown();
