@@ -4,11 +4,11 @@ laser_stitcher_output:
   nav_cloud: 
     # Publishing
     publish:                    true
-    incremental_update:         true
+    incremental_update:         false
     throttle_publish:           false
     publishing_throttle_max:    1
-    retain_after_scan:          true
-    save:                       true
+    retain_after_scan:          false
+    save:                       false
     # Postprocessing Data
     should_postprocess:             true
     min_cloud_size:                 50
@@ -41,7 +41,7 @@ laser_stitcher_output:
     throttle_publish:           true
     publishing_throttle_max:    50
     retain_after_scan:          true
-    save:                       true
+    save:                       false
     # Postprocessing Data
     should_postprocess:             true
     min_cloud_size:                 50
@@ -73,6 +73,6 @@ laser_stitcher_output:
     incremental_update:         false
     throttle_publish:           false
     retain_after_scan:          false
-    save:                       false
+    save:                       true
     # Postprocessing Data
     should_postprocess:             false

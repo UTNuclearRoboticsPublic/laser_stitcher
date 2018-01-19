@@ -25,22 +25,16 @@ int main(int argc, char** argv)
 		scan_srv.request.external_angle_sensing = false;
 
 		ros::Duration(2.0).sleep();
-
-		while( ros::ok() )
-		{
-			
-			if( ! scanning_client.call(scan_srv) )
-				ROS_WARN_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
-			else
-			{	
-				ROS_INFO_STREAM("[LaserStitcherClient] Successfully called scanning service.");
-				for(int i=0; i<scan_srv.response.output_clouds.size(); i++)
-				{
-					ROS_INFO_STREAM("\t " << scan_srv.response.cloud_names[i] << " cloud size: " << scan_srv.response.output_clouds[i].height*scan_srv.response.output_clouds[i].width << " in frame " << scan_srv.response.output_clouds[i].header.frame_id);
-				}
+	
+		if( ! scanning_client.call(scan_srv) )
+			ROS_WARN_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
+		else
+		{	
+			ROS_INFO_STREAM("[LaserStitcherClient] Successfully called scanning service.");
+			for(int i=0; i<scan_srv.response.output_clouds.size(); i++)
+			{
+				ROS_INFO_STREAM("\t " << scan_srv.response.cloud_names[i] << " cloud size: " << scan_srv.response.output_clouds[i].height*scan_srv.response.output_clouds[i].width << " in frame " << scan_srv.response.output_clouds[i].header.frame_id);
 			}
-			
-			break;
 		}
 
 		// If we shouldn't loop, break the loop
