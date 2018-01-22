@@ -196,6 +196,18 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(message_catcher src/message_catcher.cpp )
+add_dependencies(
+   message_catcher 
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+  pointcloud_processing_server
+)
+target_link_libraries(
+  message_catcher 
+  ${catkin_LIBRARIES}
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

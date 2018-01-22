@@ -12,7 +12,7 @@
       args    = ""
       output  = "screen"
     >
-    </node>
+  </node>
 
 	<node
       name    = "lidar_ur5_manager"
@@ -20,7 +20,7 @@
       type    = "lidar_ur5_manager"
       args    = ""
     >
-    </node>
+  </node>
     
   <node
     name    = "laser_stitcher_client"
@@ -35,8 +35,9 @@
       name    = "pointcloud_processing_server"
       pkg     = "pointcloud_processing_server"
       type    = "pointcloud_processing_server"
-      args    = ""
+      args    = "--intensity"
+      output  = "screen"
     >
-    </node>
+  </node>
 
 </launch>

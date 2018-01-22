@@ -177,8 +177,11 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 
 			    		sensor_msgs::PointCloud2 temp_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
 			    		
-			    		output_settings_[i].cloud_.width = temp_cloud.width*2;
-			    		output_settings_[i].cloud_.data = temp_cloud.data;
+			    		output_settings_[i].cloud_ = temp_cloud;
+			    		//output_settings_[i].cloud_.point_step = temp_cloud.point_step;
+			    		//output_settings_[i].cloud_.row_step = temp_cloud.row_step;
+			    		//output_settings_[i].cloud_.width = temp_cloud.width;
+			    		//output_settings_[i].cloud_.data = temp_cloud.data;
 			    	}
 			    }
 		    	ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << output_settings_[i].incremental_update_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);

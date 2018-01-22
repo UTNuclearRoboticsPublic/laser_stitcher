@@ -38,7 +38,7 @@ laser_stitcher_output:
     # Publishing
     publish:                    true
     incremental_update:         true
-    throttle_publish:           true
+    throttle_publish:           false
     publishing_throttle_max:    50
     retain_after_scan:          true
     save:                       false
