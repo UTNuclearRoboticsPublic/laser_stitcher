@@ -11,7 +11,7 @@ LaserStitcher::LaserStitcher()
 	// These three variables not used elsewhere in class...
 	std::string laser_topic, pointcloud_topic, finished_topic, reset_topic;
 
-	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
+	if( !nh_.getParam("laser_stitcher/laser_topic", laser_topic) )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 	nh_.param<std::string>("laser_stitcher/reset_topic", reset_topic, "reset_map_scan");
@@ -89,7 +89,7 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 		nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/throttle_publish", cloud_options.throttle_publish_, false);
 		if(cloud_options.throttle_publish_)
 		{
-			if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "/publishing_throttle_max", cloud_options.publishing_throttle_max_, 5))
+			if(!nh_.getParam(yaml_file_name + "/" + cloud_list[i] + "/publishing_throttle_max", cloud_options.publishing_throttle_max_))
 				ROS_WARN_STREAM("[LaserStitcher] Publishing throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting publish throttle to " << cloud_options.voxel_throttle_max_);
 			cloud_options.publishing_throttle_counter_ = 0;
 		}
@@ -103,7 +103,7 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 			nh_.param<bool>(yaml_file_name + "/" + cloud_list[i] + "/throttle_postprocess", cloud_options.throttle_postprocess_, false);
 			if(cloud_options.throttle_postprocess_)
 			{
-				if(!nh_.param<int>(yaml_file_name + "/" + cloud_list[i] + "/postprocess_throttle_max", cloud_options.postprocess_throttle_max_, 50))
+				if(!nh_.getParam(yaml_file_name + "/" + cloud_list[i] + "/postprocess_throttle_max", cloud_options.postprocess_throttle_max_))
 					ROS_WARN_STREAM("[LaserStitcher] Postprocessing throttling requested for output " << cloud_list[i] << ", but throttle maximum not found in parameter server. Setting voxel throttle to " << cloud_options.voxel_throttle_max_);
 				cloud_options.postprocess_throttle_counter_ = 0;
 			}
