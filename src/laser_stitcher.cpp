@@ -145,6 +145,9 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 	  		//ROS_ERROR_STREAM(frames_found);
 		  	sensor_msgs::PointCloud2 new_planar_cloud;
 		  	scan_converter_.transformLaserScanToPointCloud(target_frame_, *scan_in, new_planar_cloud, listener_);
+		  	pcl::PointCloud<pcl::PointXYZI>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+		  	pcl::fromROSMsg(new_planar_cloud, *temp_cloud);
+		  	pcl::toROSMsg(*temp_cloud, new_planar_cloud);
 		  	for(int i=0; i<output_settings_.size(); i++)
 		  	{
 			  	sensor_msgs::PointCloud2 new_summed_cloud;
@@ -169,6 +172,7 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 			    	ROS_DEBUG_STREAM(output_settings_[i].cloud_name_ << " " << postprocess << " " << output_settings_[i].postprocess_throttle_counter_ << " " << output_settings_[i].postprocess_throttle_max_);
 			    	if(postprocess)
 			    	{
+			    		ROS_ERROR_STREAM(output_settings_[i].cloud_.data.size() << " " << output_settings_[i].cloud_name_ << output_settings_[i].cloud_.height << " " << output_settings_[i].cloud_.width);
 			    		output_settings_[i].postprocess_.request.pointcloud = output_settings_[i].cloud_;
 			    		postprocessor_.call(output_settings_[i].postprocess_);
 			    		
@@ -177,11 +181,12 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 
 			    		sensor_msgs::PointCloud2 temp_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
 			    		
-			    		output_settings_[i].cloud_ = temp_cloud;
-			    		//output_settings_[i].cloud_.point_step = temp_cloud.point_step;
-			    		//output_settings_[i].cloud_.row_step = temp_cloud.row_step;
-			    		//output_settings_[i].cloud_.width = temp_cloud.width;
-			    		//output_settings_[i].cloud_.data = temp_cloud.data;
+			    		output_settings_[i].cloud_.point_step = temp_cloud.point_step;
+			    		output_settings_[i].cloud_.row_step = temp_cloud.row_step;
+			    		output_settings_[i].cloud_.width = temp_cloud.width;
+			    		output_settings_[i].cloud_.data = temp_cloud.data;
+
+			    		ROS_ERROR_STREAM(output_settings_[i].cloud_.data.size() << " " << output_settings_[i].cloud_name_ << output_settings_[i].cloud_.height << " " << output_settings_[i].cloud_.width);
 			    	}
 			    }
 		    	ROS_DEBUG_STREAM("[LaserStitcher] Should publish: " << output_settings_[i].incremental_update_ << "; Publishing topic: " << cloud_pub_.getTopic() << "; Current cloud size: " << summed_pointcloud_.width*summed_pointcloud_.height);
@@ -225,6 +230,26 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 	{
 		for(int i=0; i<output_settings_.size(); i++)
 		{
+			// Run one final postprocess where necessary
+			if(output_settings_[i].should_postprocess_)
+		    {
+	    		ROS_ERROR_STREAM(output_settings_[i].cloud_.data.size() << " " << output_settings_[i].cloud_name_ << output_settings_[i].cloud_.height << " " << output_settings_[i].cloud_.width);
+	    		output_settings_[i].postprocess_.request.pointcloud = output_settings_[i].cloud_;
+	    		postprocessor_.call(output_settings_[i].postprocess_);
+	    		
+	    		sensor_msgs::PointCloud2Modifier cloud_modifier_(output_settings_[i].cloud_);
+				cloud_modifier_.resize(0);
+
+	    		sensor_msgs::PointCloud2 temp_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
+	    		
+	    		output_settings_[i].cloud_.point_step = temp_cloud.point_step;
+	    		output_settings_[i].cloud_.row_step = temp_cloud.row_step;
+	    		output_settings_[i].cloud_.width = temp_cloud.width;
+	    		output_settings_[i].cloud_.data = temp_cloud.data;
+
+	    		ROS_ERROR_STREAM(output_settings_[i].cloud_.data.size() << " " << output_settings_[i].cloud_name_ << output_settings_[i].cloud_.height << " " << output_settings_[i].cloud_.width);
+		    }
+
 			if(output_settings_[i].should_save_)
 			{
 				rosbag::Bag bag;

@@ -35,7 +35,7 @@
       name    = "pointcloud_processing_server"
       pkg     = "pointcloud_processing_server"
       type    = "pointcloud_processing_server"
-      args    = "--intensity"
+      args    = "-intensity"
       output  = "screen"
     >
   </node>
