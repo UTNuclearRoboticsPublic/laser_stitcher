@@ -150,12 +150,10 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 		  	pcl::toROSMsg(*temp_cloud, new_planar_cloud);
 		  	for(int i=0; i<output_settings_.size(); i++)
 		  	{
-			  	sensor_msgs::PointCloud2 new_summed_cloud;
 			  	const sensor_msgs::PointCloud2 previous_cloud_state = output_settings_[i].cloud_;
 
 			    pcl::concatenatePointCloud(previous_cloud_state, new_planar_cloud, output_settings_[i].cloud_);
 			    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught and stitched!");
-			    //ROS_ERROR_STREAM("original: " << previous_cloud_state.height*previous_cloud_state.width << " aaaand new: " << new_planar_cloud.height*new_planar_cloud.width);
 			    if(output_settings_[i].should_postprocess_)
 			    {
 			    	bool postprocess = true;
@@ -179,12 +177,12 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 			    		sensor_msgs::PointCloud2Modifier cloud_modifier_(output_settings_[i].cloud_);
 						cloud_modifier_.resize(0);
 
-			    		sensor_msgs::PointCloud2 temp_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
+			    		sensor_msgs::PointCloud2 postprocessed_cloud = output_settings_[i].postprocess_.response.task_results[output_settings_[i].postprocess_.response.task_results.size()-1].task_pointcloud;
 			    		
-			    		output_settings_[i].cloud_.point_step = temp_cloud.point_step;
-			    		output_settings_[i].cloud_.row_step = temp_cloud.row_step;
-			    		output_settings_[i].cloud_.width = temp_cloud.width;
-			    		output_settings_[i].cloud_.data = temp_cloud.data;
+			    		output_settings_[i].cloud_.point_step = postprocessed_cloud.point_step;
+			    		output_settings_[i].cloud_.row_step = postprocessed_cloud.row_step;
+			    		output_settings_[i].cloud_.width = postprocessed_cloud.width;
+			    		output_settings_[i].cloud_.data = postprocessed_cloud.data;
 
 			    		ROS_ERROR_STREAM(output_settings_[i].cloud_.data.size() << " " << output_settings_[i].cloud_name_ << output_settings_[i].cloud_.height << " " << output_settings_[i].cloud_.width);
 			    	}
