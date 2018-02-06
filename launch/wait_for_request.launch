@@ -1,0 +1,34 @@
+
+<launch>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/lidar_ur5_manager/lidar_ur5_manager.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/wait_for_request.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/laser_stitcher_output.yaml"/>
+
+	<node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+
+	<node
+      name    = "lidar_ur5_manager"
+      pkg     = "laser_stitcher"
+      type    = "lidar_ur5_manager"
+      args    = ""
+    >
+  </node>
+
+  <node
+      name    = "pointcloud_processing_server"
+      pkg     = "pointcloud_processing_server"
+      type    = "pointcloud_processing_server"
+      args    = "-intensity"
+      output  = "screen"
+    >
+  </node>
+
+</launch>
