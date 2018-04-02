@@ -30,6 +30,7 @@ private:
 	ros::Subscriber finish_sub_;
 	ros::Subscriber reset_sub_;
 	ros::Publisher cloud_pub_;
+	ros::Publisher planar_cloud_pub_;
 
 	class StitchedCloud
 	{

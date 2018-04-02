@@ -32,6 +32,8 @@ LaserStitcher::LaserStitcher()
 */
 	last_transform_.setIdentity();
 
+	planar_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("laser_stitcher/planar_cloud", 1, this);
+
 	// ----- Subscribers -----
 	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 1, &LaserStitcher::laserCallback, this);
 	finish_sub_ = nh_.subscribe<std_msgs::Bool>(finished_topic, 20, &LaserStitcher::setScanningState, this);
@@ -123,6 +125,7 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 */
 void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 { 
+try{
 	if(is_running_)
 	{
 		if(!listener_.waitForTransform(scan_in->header.frame_id, target_frame_, scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment), ros::Duration(1.0)))
@@ -148,6 +151,7 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
 		  	pcl::PointCloud<pcl::PointXYZI>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZI>);
 		  	pcl::fromROSMsg(new_planar_cloud, *temp_cloud);
 		  	pcl::toROSMsg(*temp_cloud, new_planar_cloud);
+		  	planar_cloud_pub_.publish(new_planar_cloud);
 		  	for(int i=0; i<output_settings_.size(); i++)
 		  	{
 			  	const sensor_msgs::PointCloud2 previous_cloud_state = output_settings_[i].cloud_;
@@ -214,6 +218,12 @@ void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_i
     }
     else 
     	ros::Duration(sleepy_time_).sleep();
+}
+catch(tf2::TransformException e)
+{
+ROS_ERROR_THROTTLE(2, "laser_stitcher got a tf2 exception");
+}
+
 }
 
 /* ------------------------- Set Scanning State -------------------------
