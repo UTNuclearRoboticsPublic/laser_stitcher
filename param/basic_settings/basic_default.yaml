@@ -6,33 +6,20 @@ laser_stitcher:
   laser_topic:              hokuyo_scan                     # input LIDAR sensor_msgs/laser_scan topic
   reset_topic:              reset_map_scan                  # publishing to this topic resets cloud
   scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
-  pointcloud_topic:         laser_stitcher/output_cloud
   # laser_stitching
   sleepy_time:              0.1
-  # publishing / saving
-  publish_after_updating:   true
-  publishing_throttle:      1
-  save_data:                true
-  bag_name:                 stitched_pointcloud
   # movement_check - not really implemented fully 
   should_check_movement:    false
   distance_threshold:       0.02
   angle_threshold:          0.05
   # client stuff 
   should_loop:              true
-  postprocessing_file_name: laser_stitcher_postprocess
-  # voxel filter
-  voxelize:                 true
-  should_throttle_voxel:    true
-  voxel_throttle:           50
-  leaf_size:                0.1
   reset_cloud_when_stopped: false
 lidar_ur5_manager:
   angle_command_topic:    left_ur5_controller/left_ur5_URScript
-  scanning_state_topic:   laser_stitcher/scanning_state
   service_name:           laser_stitcher/stationary_scan
   output_cloud_topic:     laser_stitcher/output_cloud_list
-  min_angle:              -1.65
+  min_angle:              -1.65 
   max_angle:              1.65
   wrist_speed:            0.1
   fixed_start_pose:       false

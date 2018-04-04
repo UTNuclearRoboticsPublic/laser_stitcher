@@ -8,7 +8,7 @@ LIDARUR5Manager::LIDARUR5Manager()
 	urscript_pub_ = nh_.advertise<std_msgs::String>(urscript_command_topic, 1);
 	
 	std::string scanning_state_topic;
-	nh_.param<std::string>("lidar_ur5_manager/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
+	nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 
 	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");

@@ -7,7 +7,7 @@
 */
 LaserStitcher::LaserStitcher()
 {
-	std::string laser_topic, pointcloud_topic, finished_topic, reset_topic;
+	std::string laser_topic, pointcloud_topic, scanning_state_topic, reset_topic;
 
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
@@ -20,6 +20,8 @@ LaserStitcher::LaserStitcher()
 	nh_.param<float>("laser_stitcher/distance_threshold", distance_threshold_, 0.02);	
 	nh_.param<float>("laser_stitcher/angle_threshold", angle_threshold_, 0.05);  
 	nh_.param<std::string>("laser_stitcher/target_frame", target_frame_, "map");
+
+	nh_.param<bool>("laser_stitcher/reset_cloud_when_stopped", reset_cloud_when_stopped_, false);
 	/*
 	tf::Quaternion zero_rotation(0.0, 0.0, 0.0, 1.0);
 	tf::Vector3 zero_vector(0.0, 0.0, 0.0);
@@ -34,7 +36,7 @@ LaserStitcher::LaserStitcher()
 
 	// ----- Subscribers -----
 	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 1, &LaserStitcher::laserCallback, this);
-	finish_sub_ = nh_.subscribe<std_msgs::Bool>(finished_topic, 20, &LaserStitcher::setScanningState, this);
+	finish_sub_ = nh_.subscribe<std_msgs::Bool>(scanning_state_topic, 20, &LaserStitcher::setScanningState, this);
 	reset_sub_ = nh_.subscribe<std_msgs::Bool>(reset_topic, 20, &LaserStitcher::resetCloud, this);
 	
 	//tf2_ros::tfBuffer tfBuffer_;
@@ -288,7 +290,7 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& is_running)
 /* ------------------------- Kill Cloud -------------------------
   Callback to tell system to depopulate and reset the cloud.
     This can also be done automatically when a scan is halted, if the
-	  class variable reset_cloud_when_stopped_ is set to TRUE
+	  class variable `en_stopped_ is set to TRUE
 */
 void LaserStitcher::resetCloud(const std_msgs::Bool::ConstPtr& placeholder)
 { 

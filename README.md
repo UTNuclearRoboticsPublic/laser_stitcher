@@ -7,7 +7,7 @@
 ## About
 Laser_Stitcher is a ROS package designed to allow the rotation of a planar LIDAR scanner and stitching of the produced clouds to generate a full-scene 360 degree pointcloud of the environment. The framework is modular with respect to rotary actuation mechanism (so far, UR5 and simple servo interfaces are implemented). The outputs are also highly modular and allow the publication of an arbitrary number of output clouds. Outputs can be postprocessed using the pointcloud library in various ways, can be continuously built up or discarded after each scan, can be saved to bag files automatically, etc. 
 
-![alt text](images/intensity_scan.png "An example scan featuring colors based on LIDAR return intensity. Generated using Hokuyo utm-30lx")
+<img src=images/intensity_scan.png width="400">
 
 This package currently depends on the [pointcloud_processing_server](https://github.com/UTNuclearRobotics/pointcloud_processing_server.git) package, although my intention is to remove this dependency in the long term. It also depends on the pointcloud library and on the laser_geometry packages, although these are included in the ROS distribution. 
 
@@ -19,11 +19,36 @@ This file contains all the basic parameters for the stitcher system, excluding j
 
 - yaml_file_name: name of the target yaml file for the output data settings
 - target_frame: default frame in which to publish clouds (this can be altered on a cloud-by-cloud basis)
-- 
-- 
+- should_check_movement: in theory, keep stitcher from adding new clouds if LIDAR hasn't moved. NOT IMPLEMENTED yet
+- should_loop: this parameter is listened to in the client end, decides whether to loop calls to actuation manager
+- angle_command_topic: topic to send actuation commands to (command type varies with actuation manager choice)
+- service_name: this one's important! The service which external clients use to speak to the actuation manager
+- min_/max_angle: angle range through which LIDAR is rotated
+- wrist_speed: also important. Faster speeds mean less-dense clouds, given a constant LIDAR scan rate
+- fixed_start_pose: choose whether or not to reset to a given pose at the beginning of every scan. NOT IMPLEMENTED yet
+- start_pose: if starting from a fixed pose, specify it here
+- scan_while_returning: scan only on the run outwards, or on the return also through rotation?
 
 ### Output Yaml File Setup
+This file contains options for all the clouds to be output from the stitcher. These are specified independently for each cloud in a big list. 
 
+#### Cloud List
+- cloud_list: the list of cloud names. THIS MUST MATCH the parameter names given for each cloud subheading below
+
+#### Publishing Options
+- publish: chooses whether or not this cloud is published
+- incremental_update: if true, this cloud will be published more than once per wrist rotation - up to once for every planar scan added
+- throttle_publish: if true, and if(incremental_update), then publishing will be throttled to occur less often than once per planar scan
+- publishing_throttle_max: if the above three options are true, then cloud will be published only once this many scans have been added 
+- retain_after_scan: if true, the cloud will be retained and built up on over consecutive full wrist rotations; otherwise it is started over
+- save: if true, this cloud will be saved at the end of each full wrist rotation in a bag file of its name in ~/.ros/ 
+
+#### Postprocessing Options
+- should_postprocess: if true, the pointcloud will be processed following stitching using the [pointcloud_processing_server](https://github.com/UTNuclearRobotics/pointcloud_processing_server.git)
+- min_cloud_size: the postprocessing will be skipped if the cloud is below a certain threshold size, specified here
+- throttle_postprocess: similar to throttle_publish, postprocessing need not be performed after every scan is added - it won't be if this is true
+- postprocess_throttle_max: the number of planar scans to be added between every postprocessing routine. A final postprocess will also be run at the end of each full rotation
+- task details: see the [pointcloud_processing_server](https://github.com/UTNuclearRobotics/pointcloud_processing_server.git) for more information on this implementation
 
 ## Use
 Running the Laser_Stitcher requires running the two primary nodes - the laser_stitcher node itself, and the actuation manager node. This is typically handled by a launch file - an example launch file is included in launch/urscript_manager.launch
