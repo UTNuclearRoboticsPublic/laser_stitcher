@@ -13,7 +13,7 @@ LaserStitcher::LaserStitcher()
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 	nh_.param<std::string>("laser_stitcher/reset_topic", reset_topic, "reset_map_scan");
-	nh_.param<std::string>("laser_stitcher/finished_topic", finished_topic, "laser_scan_finished");
+	nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "scanning_state");
 
 	// ----- Movement Check -----
 	nh_.param<bool>("laser_stitcher/should_check_movement", should_check_movement_, false);

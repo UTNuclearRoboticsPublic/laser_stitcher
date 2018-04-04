@@ -1,12 +1,11 @@
 
 laser_stitcher:
-  yaml_file_name:           laser_stitcher_output
+  yaml_file_name:           output_default.yaml
   target_frame:             map
   # topics
-  laser_topic:              hokuyo_scan
-  reset_topic:              reset_map_scan
-  finished_topic:           laser_scan_finished
-  finished_topic:           laser_stitcher/scanning_state
+  laser_topic:              hokuyo_scan                     # input LIDAR sensor_msgs/laser_scan topic
+  reset_topic:              reset_map_scan                  # publishing to this topic resets cloud
+  scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
   pointcloud_topic:         laser_stitcher/output_cloud
   # laser_stitching
   sleepy_time:              0.1
