@@ -17,10 +17,12 @@ Each stitcher platform requires two yaml files to be set up with parameters - on
 ### Basic Yaml File Setup
 This file contains all the basic parameters for the stitcher system, excluding just those parameters related to output formats. 
 
+##### Stitcher Settings
 - yaml_file_name: name of the target yaml file for the output data settings
 - target_frame: default frame in which to publish clouds (this can be altered on a cloud-by-cloud basis)
 - should_check_movement: in theory, keep stitcher from adding new clouds if LIDAR hasn't moved. NOT IMPLEMENTED yet
-- should_loop: this parameter is listened to in the client end, decides whether to loop calls to actuation manager
+
+##### Actuation Manager Settings
 - angle_command_topic: topic to send actuation commands to (command type varies with actuation manager choice)
 - service_name: this one's important! The service which external clients use to speak to the actuation manager
 - min_/max_angle: angle range through which LIDAR is rotated
@@ -29,13 +31,16 @@ This file contains all the basic parameters for the stitcher system, excluding j
 - start_pose: if starting from a fixed pose, specify it here
 - scan_while_returning: scan only on the run outwards, or on the return also through rotation?
 
+##### Client Settings
+- should_loop: this parameter is listened to in the client end, decides whether to loop calls to actuation manager. If you write your own client you will need to implement this yourself 
+
 ### Output Yaml File Setup
 This file contains options for all the clouds to be output from the stitcher. These are specified independently for each cloud in a big list. 
 
-#### Cloud List
+##### Cloud List
 - cloud_list: the list of cloud names. THIS MUST MATCH the parameter names given for each cloud subheading below
 
-#### Publishing Options
+##### Publishing Options
 - publish: chooses whether or not this cloud is published
 - incremental_update: if true, this cloud will be published more than once per wrist rotation - up to once for every planar scan added
 - throttle_publish: if true, and if(incremental_update), then publishing will be throttled to occur less often than once per planar scan
@@ -43,7 +48,7 @@ This file contains options for all the clouds to be output from the stitcher. Th
 - retain_after_scan: if true, the cloud will be retained and built up on over consecutive full wrist rotations; otherwise it is started over
 - save: if true, this cloud will be saved at the end of each full wrist rotation in a bag file of its name in ~/.ros/ 
 
-#### Postprocessing Options
+##### Postprocessing Options
 - should_postprocess: if true, the pointcloud will be processed following stitching using the [pointcloud_processing_server](https://github.com/UTNuclearRobotics/pointcloud_processing_server.git)
 - min_cloud_size: the postprocessing will be skipped if the cloud is below a certain threshold size, specified here
 - throttle_postprocess: similar to throttle_publish, postprocessing need not be performed after every scan is added - it won't be if this is true
