@@ -7,8 +7,6 @@
 */
 LaserStitcher::LaserStitcher()
 {
-
-	// These three variables not used elsewhere in class...
 	std::string laser_topic, pointcloud_topic, finished_topic, reset_topic;
 
 	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )

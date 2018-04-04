@@ -28,3 +28,14 @@ laser_stitcher:
   voxel_throttle:           50
   leaf_size:                0.1
   reset_cloud_when_stopped: false
+lidar_ur5_manager:
+  angle_command_topic:    left_ur5_controller/left_ur5_URScript
+  scanning_state_topic:   laser_stitcher/scanning_state
+  service_name:           laser_stitcher/stationary_scan
+  output_cloud_topic:     laser_stitcher/output_cloud_list
+  min_angle:              -1.65
+  max_angle:              1.65
+  wrist_speed:            0.1
+  fixed_start_pose:       false
+  start_pose:             [ 1 ]
+  scan_while_returning:   true
