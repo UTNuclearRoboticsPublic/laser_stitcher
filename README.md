@@ -18,7 +18,7 @@ This package is primarily intended to provide:
 2. Stitching of planar LIDAR scans into 3D clouds, regardless of the geometry of scans and the nature of the motion between scans
 3. A robust organizational mechanism for users to streamline maintenance and publishing of multiple cloud maps of the environment 
 
-The package is NOT intended to implement drivers for LIDAR or other sensor platforms. It assumes that input data is already available as a sensor_msgs/LaserScan, and that the header.frame_id parameter within the scan be accurately maintained and updated in position relative to the target publishing frame. 
+The package is NOT intended to implement drivers for LIDAR or other sensor platforms. **It assumes that input data is already available as a sensor_msgs/LaserScan**, and that the header.frame_id parameter within the scan be accurately maintained and updated in position relative to the target publishing frame. 
 
 It is also NOT intended to implement drivers for the actuation mechanism. While multiple high-level communication interfaces will be implemented for different actuator setups, it is intended that these remain as ROS topic outputs of target angle positions, etc. and that actual serial communication and such be handled elsewhere. 
 
@@ -49,7 +49,7 @@ This file contains all the basic parameters for the stitcher system, excluding j
 This file contains options for all the clouds to be output from the stitcher. These are specified independently for each cloud in a big list. 
 
 ##### Cloud List
-- cloud_list: the list of cloud names. THIS MUST MATCH the parameter names given for each cloud subheading below
+- cloud_list: the list of cloud names. **THIS MUST MATCH** the parameter names given for each cloud subheading below
 
 ##### Publishing Options
 - publish: chooses whether or not this cloud is published
