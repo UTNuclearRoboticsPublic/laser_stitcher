@@ -7,6 +7,8 @@
 ## About
 Laser_Stitcher is a ROS package designed to allow the rotation of a planar LIDAR scanner and stitching of the produced clouds to generate a full-scene 360 degree pointcloud of the environment. The framework is modular with respect to rotary actuation mechanism (so far, UR5 and simple servo interfaces are implemented). The outputs are also highly modular, and an arbitrary number of output clouds can be specified for publishing. Outputs can be postprocessed using the pointcloud library in various ways, can be continuously built up or discarded after each scan, can be saved to bag files automatically, etc. 
 
+[**Example Video**](https://www.youtube.com/watch?v=w7S6KkscT0Q)
+
 <img src=images/intensity_scan.png width="400">
 
 ### Dependencies
