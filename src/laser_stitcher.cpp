@@ -9,7 +9,7 @@ LaserStitcher::LaserStitcher()
 {
 	std::string laser_topic, pointcloud_topic, scanning_state_topic, reset_topic;
 
-	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "hokuyo_scan") )
+	if( !nh_.param<std::string>("laser_stitcher/laser_topic", laser_topic, "scan") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get laser topic from parameter server - defaulting to " << laser_topic << ".");
 	nh_.param<float>("laser_stitcher/sleepy_time", sleepy_time_, 0.1);
 	nh_.param<std::string>("laser_stitcher/reset_topic", reset_topic, "reset_map_scan");
@@ -125,6 +125,7 @@ bool LaserStitcher::buildSettings(std::string yaml_file_name)
 */
 void LaserStitcher::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 { 
+	ROS_INFO_STREAM("test temp... got laser callback");
 try{
 	if(is_running_)
 	{

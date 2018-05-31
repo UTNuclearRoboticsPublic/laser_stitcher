@@ -3,25 +3,35 @@
 
 LIDARUR5Manager::LIDARUR5Manager()
 {
+	// Topic for UR5 Command output (specify pos/vel goals for rotation)
 	std::string urscript_command_topic;
 	nh_.param<std::string>("lidar_ur5_manager/angle_command_topic", urscript_command_topic, "left_ur5_controller/left_ur5_URScript");
 	urscript_pub_ = nh_.advertise<std_msgs::String>(urscript_command_topic, 1);
-	
+		
+	// Topic for UR5 State input (check to see whether we've reached each goal)
 	std::string scanning_state_topic;
 	nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 
+	// Topic for output cloud - don't know if we actually need this? After the change to output topic architecture.  
 	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");
 	
-	// Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
+	// Subscriber to UR5 State - sensor_msgs/JointState 
+	//   Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
 	joint_state_nh_.setCallbackQueue(&joint_state_queue_);
-	joint_state_sub_ = joint_state_nh_.subscribe<sensor_msgs::JointState>("joint_states", 20, &LIDARUR5Manager::jointStateCallback, this);  
+	std::string jointstate_topic;
+	nh_.param<std::string>("laser_stitcher/jointstate_topic", jointstate_topic, "/joint_states");
+	joint_state_sub_ = joint_state_nh_.subscribe<sensor_msgs::JointState>(jointstate_topic, 20, &LIDARUR5Manager::jointStateCallback, this);  
 
+	// Service for UR5 Controller
 	std::string service_name;
 	nh_.param<std::string>("lidar_ur5_manager/service_name", service_name, "laser_stitcher/stationary_scan");
 	ros::ServiceServer scanning_server = nh_.advertiseService(service_name, &LIDARUR5Manager::stationaryScan, this);
 
+	// Get Start Pose
+	//   Is movement to a start pose requested?
 	nh_.param<bool>("lidar_ur5_manager/fixed_start_pose", fixed_start_state_, false);
+	//   If so, what is that start pose? 
 	if(fixed_start_state_)
 		if(!nh_.getParam("lidar_ur5_manager/start_pose", start_state_))
 		{
@@ -29,18 +39,23 @@ LIDARUR5Manager::LIDARUR5Manager()
 			fixed_start_state_ = false;
 		}
 
+	// Procedural parameters... 
 	nh_.param<float>("lidar_ur5_manager/wrist_speed", wrist_speed_, 0.3);
-	nh_.param<float>("lidar_ur5_manager/wrist_speed_returning", wrist_speed_returning_, 0.8);
+	nh_.param<float>("lidar_ur5_manager/wrist_speed_returning", wrist_speed_returning_, wrist_speed_);
 	nh_.param<bool>("lidar_ur5_manager/scan_while_returning", scan_while_returning_, false);
 	wait_time_ = 0.01; 		// seconds
 	lidar_frame_name_ = "3d_lidar_plane";
 	parent_frame_name_ = "base_link";
 
+	// Commence operation!
 	ROS_INFO_STREAM("[LIDARUR5Manager] Manager online.");
-
 	ros::spin(); 
 }
 
+// Actual service call for the entire laser_stitcher system
+//   Most parameters of behavior are specified in yaml files --> parameter server, though
+//   Only input parameters are min/max angle 
+//   Ouput parameters are clouds and cloud names 
 bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res)
 { 
 	ROS_INFO_STREAM("[LIDARUR5Manager] Received stationary_scan service callback. Finding jointstate...");
@@ -163,7 +178,8 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 	return true;  
 }
 
-
+// Output Cloud Gatherer
+//   This is run at the end of each routine --> populates output of service object from stationaryScan function
 void LIDARUR5Manager::getOutputClouds()
 {
 	still_need_cloud_ = true;
@@ -174,6 +190,10 @@ void LIDARUR5Manager::getOutputClouds()
 	}
 }
 
+// Laser_Stitcher Cloud Output Callback
+//   Used internally within getOutputClouds
+//   Just catches each output cloud from laser_stitcher and assigns them to stationaryScan service object list
+//   Then tells the owning class that it's done and we can end
 void LIDARUR5Manager::outputCallback(const laser_stitcher::stitched_clouds output_clouds)
 {
 	if(still_need_cloud_)
@@ -188,19 +208,8 @@ void LIDARUR5Manager::outputCallback(const laser_stitcher::stitched_clouds outpu
 	output_cloud_sub_.shutdown();
 }
 
-void LIDARUR5Manager::jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states)
-{
-	callbacks_received_++;
-	if(joint_states->name[0] == "left_ur5_shoulder_pan_joint")
-	{
-		joint_states_ = *joint_states;
-		wrist_angle_ = joint_states->position[5];
-		correct_callbacks_++;
-	}
-	std::string name = joint_states->name[0];
-	ROS_DEBUG_STREAM(name << " " << callbacks_received_ << " " << correct_callbacks_);
-}
-
+// Joint State Gatherer
+//   Tries to get jointstate of UR5. If it can't, continues trying. If it fails too many times, throws an error and exits
 bool LIDARUR5Manager::updateJoints()
 {
 	callbacks_received_ = 0;
@@ -225,6 +234,23 @@ bool LIDARUR5Manager::updateJoints()
 		ROS_ERROR_STREAM("[LIDARUR5Manager] Joint update failure. " << callbacks_received_ << " total callbacks received, and no callbacks for the correct jointspace, in " << time_elapsed << " seconds.");
 		return false;
 	}
+}
+
+// Joint State Callback
+//   Run between successive output commands to get input - current state of UR5
+//   Increments a class member counter of number of attempts to get jointstate
+//   If we fail enough times, higher level service will decide something isn't set up right, throw an error, and exit
+void LIDARUR5Manager::jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states)
+{
+	callbacks_received_++;
+	if(joint_states->name[0] == "left_ur5_shoulder_pan_joint")
+	{
+		joint_states_ = *joint_states;
+		wrist_angle_ = joint_states->position[5];
+		correct_callbacks_++;
+	}
+	std::string name = joint_states->name[0];
+	ROS_DEBUG_STREAM(name << " " << callbacks_received_ << " " << correct_callbacks_);
 }
 
 int main(int argc, char** argv)

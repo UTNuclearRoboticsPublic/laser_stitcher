@@ -1,0 +1,28 @@
+
+<launch>
+
+	<include file="$(find flir_ptu_driver)/launch/ptu.launch"> </include>
+	<include file="$(find urg_node)/launch/urg_lidar.launch"> </include>
+	<include file="$(find laser_stitcher)/launch/servo_manager.launch"> </include>
+
+	<!-- Static Transform Publishers !-->
+	<!--node
+		name    = "laser_frame_broadcaster"   pkg = "tf"   type = "static_transform_publisher"
+      	args  	= "0 0 0    0 0 0 1    /hokuyo_lidar /laser    100"
+  	> </node-->
+  	<node
+		name    = "ptu_frame_broadcaster"   pkg = "tf"   type = "static_transform_publisher"
+      	args  	= "0 0 0    0 0 0 1    /map /ptu_base_link    100"
+  	> </node>
+  	<node
+		name    = "hokuyo_frame_broadcaster"   pkg = "tf"   type = "static_transform_publisher"
+      	args  	= "0 0 0   0 0.707 0 -0.707   /ptu_mount_link /hokuyo_lidar   100"
+  	> </node>
+  	<node
+		name    = "base_link_broadcaster"   pkg = "tf"   type = "static_transform_publisher"
+      	args  	= "0 0 0    0 0 0 1    /map /base_link   100"
+  	> </node>
+
+
+
+</launch>

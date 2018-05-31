@@ -1,7 +1,7 @@
 
 <launch>
 
-  <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_default.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_servo.yaml"/>
   <rosparam  command="load"  file="$(find laser_stitcher)/param/output_settings/output_default.yaml"/>
 
 	<node
@@ -14,18 +14,18 @@
   </node>
 
 	<node
-      name    = "lidar_ur5_manager"
+      name    = "lidar_servo_manager"
       pkg     = "laser_stitcher"
-      type    = "lidar_ur5_manager"
+      type    = "lidar_servo_manager"
       args    = ""
       output  = "screen"
     >
   </node>
     
   <node
-    name    = "laser_stitcher_client"
+    name    = "laser_stitcher_client_servo"
     pkg     = "laser_stitcher"
-    type    = "laser_stitcher_client"
+    type    = "laser_stitcher_client_servo"
     args    = ""
     output  = "screen"
   >
