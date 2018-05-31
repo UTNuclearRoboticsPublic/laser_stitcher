@@ -5,11 +5,26 @@
 ***
 
 ## About
-Laser_Stitcher is a ROS package designed to allow the rotation of a planar LIDAR scanner and stitching of the produced clouds to generate a full-scene 360 degree pointcloud of the environment. The framework is modular with respect to rotary actuation mechanism (so far, UR5 and simple servo interfaces are implemented). The outputs are also highly modular and allow the publication of an arbitrary number of output clouds. Outputs can be postprocessed using the pointcloud library in various ways, can be continuously built up or discarded after each scan, can be saved to bag files automatically, etc. 
+Laser_Stitcher is a ROS package designed to allow the rotation of a planar LIDAR scanner and stitching of the produced clouds to generate a full-scene 360 degree pointcloud of the environment. The framework is modular with respect to rotary actuation mechanism (so far, UR5 and simple servo interfaces are implemented). The outputs are also highly modular, and an arbitrary number of output clouds can be specified for publishing. Outputs can be postprocessed using the pointcloud library in various ways, can be continuously built up or discarded after each scan, can be saved to bag files automatically, etc. 
+
+-------
+[**Example Video**](https://www.youtube.com/watch?v=w7S6KkscT0Q)
+-------
 
 <img src=images/intensity_scan.png width="400">
 
+### Dependencies
 This package currently depends on the [pointcloud_processing_server](https://github.com/UTNuclearRobotics/pointcloud_processing_server.git) package, although my intention is to remove this dependency in the long term. It also depends on the pointcloud library and on the laser_geometry packages, although these are included in the ROS distribution. 
+
+### Scope
+This package is primarily intended to provide:
+1. Logic to control an actuation mechanism used to rotate a planar LIDAR out of its scan plane to cover a 3D space
+2. Stitching of planar LIDAR scans into 3D clouds, regardless of the geometry of scans and the nature of the motion between scans
+3. A robust organizational mechanism for users to streamline maintenance and publishing of multiple cloud maps of the environment 
+
+The package is NOT intended to implement drivers for LIDAR or other sensor platforms. **It assumes that input data is already available as a sensor_msgs/LaserScan**, and that the header.frame_id parameter within the scan be accurately maintained and updated in position relative to the target publishing frame. 
+
+It is also NOT intended to implement drivers for the actuation mechanism. While multiple high-level communication interfaces will be implemented for different actuator setups, it is intended that these remain as ROS topic outputs of target angle positions, etc. and that actual serial communication and such be handled elsewhere. 
 
 ## Parameter Setup
 Each stitcher platform requires two yaml files to be set up with parameters - one 'basic' and one 'output' file. These are stored in the respective directories within param/
@@ -38,7 +53,7 @@ This file contains all the basic parameters for the stitcher system, excluding j
 This file contains options for all the clouds to be output from the stitcher. These are specified independently for each cloud in a big list. 
 
 ##### Cloud List
-- cloud_list: the list of cloud names. THIS MUST MATCH the parameter names given for each cloud subheading below
+- cloud_list: the list of cloud names. **THIS MUST MATCH** the parameter names given for each cloud subheading below
 
 ##### Publishing Options
 - publish: chooses whether or not this cloud is published
