@@ -1,0 +1,51 @@
+<launch>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_servo_positional.yaml"/>
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/output_settings/canyon_output.yaml"/>
+
+  <node 
+  	  name	  = "arbotix" 
+  	  pkg	  = "arbotix_python" 
+  	  type	  = "arbotix_driver" 
+  	  output  = "screen"
+  	>
+	  <rosparam command="load" file="$(find laser_stitcher)/param/arbotix/arbotix.yaml"/>
+  </node>
+
+  <node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+
+  <node
+      name    = "servo_manager_positional"
+      pkg     = "laser_stitcher"
+      type    = "servo_manager_positional"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+    
+  <node
+    name    = "laser_stitcher_client_servo"
+    pkg     = "laser_stitcher"
+    type    = "laser_stitcher_client_servo"
+    args    = ""
+    output  = "screen"
+  >
+  </node>
+
+  <node
+      name    = "pointcloud_processing_server"
+      pkg     = "pointcloud_processing_server"
+      type    = "pointcloud_processing_server"
+      args    = "-intensity"
+      output  = "screen"
+    >
+  </node>
+
+</launch>

@@ -1,0 +1,9 @@
+port: /dev/ttyUSB0
+rate: 15
+dynamixels: {
+    head_pan_joint: {id: 1, invert: true},
+    head_tilt_joint: {id: 2, max_angle: 100, min_angle: -100}
+}
+controllers: {
+  head_controller: {type: follow_controller, joints: [head_pan_joint, head_tilt_joint], action_name: head_controller/follow_joint_trajectory }
+}

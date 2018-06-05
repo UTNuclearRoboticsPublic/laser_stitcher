@@ -162,6 +162,18 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(servo_manager_positional src/servo_manager_positional.cpp)
+add_dependencies(
+   servo_manager_positional
+  ${servo_commander_temp_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  servo_manager_positional
+  ${catkin_LIBRARIES}
+)
+
+
 add_executable(lidar_servo_manager src/lidar_servo_manager.cpp)
 add_dependencies(
    lidar_servo_manager

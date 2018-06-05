@@ -1,0 +1,31 @@
+
+laser_stitcher:
+  yaml_file_name:           canyon_output
+  target_frame:             map
+  # topics
+  laser_topic:              hokuyo_scan                     # input LIDAR sensor_msgs/laser_scan topic
+  reset_topic:              reset_map_scan                  # publishing to this topic resets cloud
+  scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
+  # laser_stitching
+  sleepy_time:              0.1
+  # movement_check - not really implemented fully 
+  should_check_movement:    false
+  distance_threshold:       0.02
+  angle_threshold:          0.05
+  # client stuff 
+  should_loop:              true
+  reset_cloud_when_stopped: false
+servo_manager_positional:
+  angle_command_topic:    /servo_pan_joint/command
+  jointstate_topic:       /joint_states
+  joint_names:            [servo_tilt_joint, servo_pan_joint]
+  lidar_frame:            scan
+  service_name:           laser_stitcher/stationary_scan
+  output_cloud_topic:     laser_stitcher/output_cloud_list
+  min_angle:              -1.3
+  max_angle:              1.3
+  pan_speed:              0.1
+  pan_speed_returning:    0.1
+  fixed_start_pose:       false
+  start_pose:             [ 1 ]
+  scan_while_returning:   true
