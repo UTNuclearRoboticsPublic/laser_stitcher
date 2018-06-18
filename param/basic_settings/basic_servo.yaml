@@ -1,6 +1,6 @@
 
 laser_stitcher:
-  yaml_file_name:           laser_stitcher_output
+  yaml_file_name:           canyon_mapper_output
   target_frame:             map
   # topics
   laser_topic:              hokuyo_scan                     # input LIDAR sensor_msgs/laser_scan topic

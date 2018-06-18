@@ -1,8 +1,8 @@
 
 #include <ros/ros.h>
 #include "laser_stitcher/stationary_scan.h"
-#include <pointcloud_processing_server/pointcloud_task_creation.h>
-#include <pointcloud_processing_server/pointcloud_process.h>
+//#include <pointcloud_processing_server/pointcloud_task_creation.h>
+//#include <pointcloud_processing_server/pointcloud_process.h>
 
 int main(int argc, char** argv)
 {

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(laser_stitcher)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
+add_definitions(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -16,7 +16,6 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
-	pointcloud_processing_server
 )
 
 ## System dependencies are found with CMake's conventions
@@ -110,7 +109,7 @@ catkin_package(
   INCLUDE_DIRS include
   
 #  CATKIN_DEPENDS other_catkin_pkg
-  CATKIN_DEPENDS pointcloud_processing_server 
+#  CATKIN_DEPENDS  
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
@@ -147,17 +146,6 @@ add_dependencies(
 )
 target_link_libraries(
   laser_stitcher
-  ${catkin_LIBRARIES}
-)
-
-add_executable(laser_stitcher_scanning_true src/laser_stitcher_scanning_true.cpp)
-add_dependencies(
-   laser_stitcher_scanning_true
-  ${laser_stitcher_scanning_true_EXPORTED_TARGETS}
-   ${catkin_EXPORTED_TARGETS}
-)
-target_link_libraries(
-  laser_stitcher_scanning_true
   ${catkin_LIBRARIES}
 )
 
