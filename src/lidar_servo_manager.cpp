@@ -13,7 +13,7 @@ LIDARServoManager::LIDARServoManager()
 	nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 	// Get Joint Names for input/output servo commands
-	if( !nh_.getParam("laser_stitcher/joint_names", joint_names_) );
+	if( !nh_.getParam("lidar_servo_manager/joint_names", joint_names_) );
 	{
 		joint_names_.push_back("ptu_pan");
 		joint_names_.push_back("ptu_tilt");

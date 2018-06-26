@@ -19,13 +19,8 @@ ServoManagerPositional::ServoManagerPositional()
 	nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state");
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 	// Get Joint Names for input/output servo commands
-	if( !nh_.getParam("servo_manager_positional/joint_names", joint_names_) );
-	{
-		joint_names_.push_back("ptu_pan");
-		joint_names_.push_back("ptu_tilt");
-		ROS_WARN_STREAM("[ServoManagerPositional] Warning - could not get list of names for joints. Defaulting to Pan and Tilt.");
-	}
-
+	if( !nh_.param<std::string>("servo_manager_positional/pan_joint", pan_joint_, "servo_pan_joint") )
+		ROS_WARN_STREAM("[ServoManagerPositional] Warning - could not get name of pan joint. Defaulting to servo_pan_joint.");
 	
 	// Subscriber to Servo State - sensor_msgs/JointState 
 	//   Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
@@ -78,7 +73,7 @@ ServoManagerPositional::ServoManagerPositional()
 bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res)
 { 
 	// Enforce max speed on joints...
-	nh_.setParam("/arbotix/joints/servo_pan_joint/max_speed", pan_speed_*180/3.14159*1.67);  // for now, experimentally determined that the servo moves at 1/1.67 of the max_speed
+	nh_.setParam("/arbotix/joints/" + pan_joint_ + "/max_speed", pan_speed_);
 
 	// Declare the positional command to the servos 
 	std_msgs::Float64 pos_cmd;
@@ -184,16 +179,18 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 	output_cloud_names_.clear();
 	output_clouds_.clear();
 	getOutputClouds();
-	for(int i=0; i<output_clouds_.size(); i++)
-	{
-		res.cloud_names.push_back(output_cloud_names_[i]);
-		res.output_clouds.push_back(output_clouds_[i]);
-	}
+//	for(int i=0; i<output_clouds_.size(); i++)
+//	{
+//		res.cloud_names.push_back(output_cloud_names_[i]);
+//		res.output_clouds.push_back(output_clouds_[i]);
+//	}
 
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[ServoManagerPositional] About to publish message to turn scanning routine off!");
 	scanning_state_pub_.publish(scanning_state); 			// Shut down laser stitcher process
 
+	// Temporary, to ensure output message is published prior to this node dying...
+	ros::Duration(1.0).sleep();
 
 	return true;  
 }
@@ -202,12 +199,12 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 //   This is run at the end of each routine --> populates output of service object from stationaryScan function
 void ServoManagerPositional::getOutputClouds()
 {
-	still_need_cloud_ = true;
-	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &ServoManagerPositional::outputCallback, this);
-	while(still_need_cloud_ && ros::ok())
-	{
-		ros::spinOnce();
-	}
+//	still_need_cloud_ = true;
+//	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &ServoManagerPositional::outputCallback, this);
+//	while(still_need_cloud_ && ros::ok())
+//	{
+//		ros::spinOnce();
+//	}
 }
 
 // Laser_Stitcher Cloud Output Callback
@@ -241,8 +238,8 @@ bool ServoManagerPositional::updateJoints()
 		ros::Duration(wait_time_).sleep();
 		joint_state_queue_.callAvailable(ros::WallDuration());
 		time_elapsed = ros::Time::now() - time_started;
-
-		/* If necessary...
+/*
+		// If necessary...
 		// Manually build the relevant frame for the LIDAR
 		//   Build transform, set frames and time
 	  	geometry_msgs::TransformStamped lidar_transform;
@@ -255,7 +252,7 @@ bool ServoManagerPositional::updateJoints()
 	  	lidar_transform.transform.translation.z = 1.0;
 	  	//   Set Rotation (pan is dynamic)
 	  	tf2::Quaternion rotation;
-	  	rotation.setRPY(0.0, 0.0, pan_angle_);
+	  	rotation.setRPY(0.0, -1.5708, pan_angle_);
 	  	lidar_transform.transform.rotation.x = rotation.x();
 	  	lidar_transform.transform.rotation.y = rotation.y();
 	  	lidar_transform.transform.rotation.z = rotation.z();
@@ -263,7 +260,7 @@ bool ServoManagerPositional::updateJoints()
 	  	//   Broadcast it!
 	  	lidar_frame_broadcaster.sendTransform(lidar_transform);
 	  	//ROS_DEBUG_STREAM("Published a transform at: " << lidar_transform);
-	  	*/
+*/	  	
 	}
 	if(correct_callbacks_ > 0)
 	{
@@ -285,21 +282,30 @@ bool ServoManagerPositional::updateJoints()
 //   If we fail enough times, higher level service will decide something isn't set up right, throw an error, and exit
 void ServoManagerPositional::jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_states)
 {
-	ROS_DEBUG_STREAM("[ServoManagerPositional] Received a servo jointstate input: " << joint_states->name[1] << " " << joint_states->position[1]);
-
 	callbacks_received_++;
-	if(joint_states->name[1] == joint_names_[1])
+	bool found_joint = false;
+	int i = 0;
+	while(i<joint_states->name.size() && !found_joint)
 	{
-		joint_states_ = *joint_states;
-		pan_angle_ = joint_states->position[1];
-		correct_callbacks_++;
+		std::string name = joint_states->name[i];
+		ROS_DEBUG_STREAM("name: " << name << " received:" << callbacks_received_ << " correct: " << correct_callbacks_ << " current angle: " << pan_angle_);
+		if(joint_states->name[i] == pan_joint_)
+		{
+			joint_states_ = *joint_states;
+			pan_angle_ = joint_states->position[i];
+			correct_callbacks_++;
+			found_joint = true;
+			break;
+		}
+		i++;
+	}
+	if(!found_joint)
+	{
+		ROS_WARN_STREAM_THROTTLE(0.5, "[ServoManagerPositional] Warning: got a jointstate, but name does not match expected. First two joint names in jointstate received were " << joint_states->name[0] << " and " << joint_states->name[1] << " but expected " << pan_joint_);
+		i--;
 	}
 	else
-	{
-		ROS_WARN_STREAM_THROTTLE(0.5, "[ServoManagerPositional] Warning: got a jointstate, but name does not match expected. Received " << joint_states->name[1] << " but expected " << joint_names_[1]);
-	}
-	std::string name = joint_states->name[1];
-	ROS_DEBUG_STREAM("name: " << name << " received:" << callbacks_received_ << " correct: " << correct_callbacks_ << " current angle: " << pan_angle_);
+		ROS_DEBUG_STREAM("[ServoManagerPositional] Received a correct jointstate, with name " << joint_states->name[i] << " position " << joint_states->position[i]);
 }
 
 int main(int argc, char** argv)

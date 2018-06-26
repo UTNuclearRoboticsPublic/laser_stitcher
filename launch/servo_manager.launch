@@ -2,7 +2,7 @@
 <launch>
 
   <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_servo.yaml"/>
-  <rosparam  command="load"  file="$(find laser_stitcher)/param/output_settings/output_default.yaml"/>
+  <!--rosparam  command="load"  file="$(find laser_mapper)/param/output_default.yaml"/-->
 
 	<node
       name    = "laser_stitcher"

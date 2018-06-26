@@ -1,7 +1,7 @@
 <launch>
 
   <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_servo_positional.yaml"/>
-  <rosparam  command="load"  file="$(find laser_stitcher)/param/output_settings/canyon_output.yaml"/>
+  <rosparam  command="load"  file="$(find laser_mapper)/param/canyon_mapper_output.yaml"/>
 
   <node 
   	  name	  = "arbotix" 
@@ -16,6 +16,15 @@
       name    = "laser_stitcher"
       pkg     = "laser_stitcher"
       type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+
+  <node
+      name    = "laser_mapper"
+      pkg     = "laser_mapper"
+      type    = "laser_mapper"
       args    = ""
       output  = "screen"
     >

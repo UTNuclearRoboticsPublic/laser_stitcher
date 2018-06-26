@@ -1,20 +1,22 @@
 
 laser_stitcher:
   yaml_file_name:           canyon_mapper_output
-  target_frame:             map
+  output_frame:             map
   # topics
+  planar_scan_topic:        laser_stitcher/planar_cloud
+  partial_scan_topic:       laser_stitcher/partial_cloud
+  full_scan_topic:          laser_stitcher/full_scan
   laser_topic:              hokuyo_scan                     # input LIDAR sensor_msgs/laser_scan topic
   reset_topic:              reset_map_scan                  # publishing to this topic resets cloud
   scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
   # laser_stitching
   sleepy_time:              0.1
-  # movement_check - not really implemented fully 
-  should_check_movement:    false
-  distance_threshold:       0.02
-  angle_threshold:          0.05
+  scale_intensities:        true
+  intensity_scale_exp:      1.0
   # client stuff 
   should_loop:              true
   reset_cloud_when_stopped: false
+  should_save:              false
 lidar_servo_manager:
   angle_command_topic:    /ptu/cmd
   jointstate_topic:       /joint_states

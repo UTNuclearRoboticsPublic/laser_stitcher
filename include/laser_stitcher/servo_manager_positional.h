@@ -33,7 +33,7 @@ private:
 	float callbacks_received_;
 	float correct_callbacks_;
 	float pan_angle_;
-	std::vector<std::string> joint_names_;
+	std::string pan_joint_;
 	sensor_msgs::JointState joint_states_;
 
 	float deadband_;

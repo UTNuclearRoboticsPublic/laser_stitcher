@@ -41,12 +41,14 @@ private:
 	std::string output_frame_;
 	sensor_msgs::PointCloud2 current_scan_;
 	float wait_time_if_not_running_;
+	bool scale_intensities_;
+	float intensity_scale_exp_;
 
 	laser_geometry::LaserProjection scan_converter_;
 	tf::TransformListener listener_;
 	tf::StampedTransform last_transform_;
 
-	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan_in);
+	void laserCallback(sensor_msgs::LaserScan scan_in);
 	void setScanningState(const std_msgs::Bool::ConstPtr& shut_down);
 	void resetCloud(const std_msgs::Bool::ConstPtr& placeholder);
 	bool lidarHasMoved(std::string);

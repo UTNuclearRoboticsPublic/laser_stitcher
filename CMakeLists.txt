@@ -160,6 +160,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(arbotix_frame_publisher src/arbotix_frame_publisher.cpp )
+add_dependencies(
+   arbotix_frame_publisher 
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  arbotix_frame_publisher 
+  ${catkin_LIBRARIES}
+)
+
 
 add_executable(lidar_servo_manager src/lidar_servo_manager.cpp)
 add_dependencies(
