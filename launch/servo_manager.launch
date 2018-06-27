@@ -40,4 +40,6 @@
     >
   </node>
 
+  <include file="$(find flir_ptu_driver)/launch/ptu.launch"> </include>
+
 </launch>
