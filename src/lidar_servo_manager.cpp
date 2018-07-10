@@ -57,7 +57,7 @@ LIDARServoManager::LIDARServoManager()
 	nh_.param<float>("lidar_servo_manager/pan_speed", pan_speed_, 0.3);
 	nh_.param<float>("lidar_servo_manager/pan_speed_returning", pan_speed_returning_, pan_speed_);
 	nh_.param<bool>("lidar_servo_manager/scan_while_returning", scan_while_returning_, false);
-	wait_time_ = 0.01; 		// seconds
+	nh_.param<float>("lidar_servo_manager/wait_time", wait_time_, 0.05);
 
 
 	// Commence operation!
@@ -105,7 +105,6 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 	{
 		ROS_ERROR_STREAM("[LIDARServoManager] Failed to update joints " << joint_update_attempts << " times.");
 		joint_update_attempts++;
-		ros::Duration(0.05).sleep();
 	}
 	if(joint_update_attempts >= max_joint_update_attempts)
 	{
@@ -157,7 +156,6 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		{
 			ROS_ERROR_STREAM("[LIDARServoManager] Failed to update joints " << joint_update_attempts << " times.");
 			joint_update_attempts++;
-			ros::Duration(0.05).sleep();
 		}
 		if(joint_update_attempts >= max_joint_update_attempts)
 		{
@@ -166,7 +164,6 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		}
 
 		ROS_DEBUG_STREAM("[LIDARServoManager] Sent a counterclockwise motion command. Current position: " << pan_angle_);
-		ros::Duration(0.05).sleep();
 	}
 	
 	if(!scan_while_returning_)
@@ -199,7 +196,6 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		{
 			ROS_ERROR_STREAM("[LIDARServoManager] Failed to update joints " << joint_update_attempts << " times.");
 			joint_update_attempts++;
-			ros::Duration(0.05).sleep();
 		}
 		if(joint_update_attempts >= max_joint_update_attempts)
 		{
@@ -208,7 +204,6 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		}
 
 		ROS_DEBUG_STREAM("[LIDARServoManager] Sent a counterclockwise motion command. Current position: " << pan_angle_);
-		ros::Duration(0.05).sleep();
 	}
 
 	output_cloud_names_.clear();
@@ -237,7 +232,7 @@ void LIDARServoManager::getOutputClouds()
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
-		ros::Duration(0.05).sleep();
+		ros::Duration(wait_time_).sleep();
 	}
 }
 
@@ -295,7 +290,6 @@ bool LIDARServoManager::updateJoints()
 	  	lidar_frame_broadcaster.sendTransform(lidar_transform);
 	  	//ROS_DEBUG_STREAM("Published a transform at: " << lidar_transform);
 	  	*/
-		ros::Duration(0.05).sleep();
 	}
 	if(correct_callbacks_ > 0)
 	{
