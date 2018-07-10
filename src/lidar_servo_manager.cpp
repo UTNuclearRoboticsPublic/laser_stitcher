@@ -166,6 +166,7 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		}
 
 		ROS_DEBUG_STREAM("[LIDARServoManager] Sent a counterclockwise motion command. Current position: " << pan_angle_);
+		ros::Duration(0.05).sleep();
 	}
 	
 	if(!scan_while_returning_)
@@ -207,6 +208,7 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		}
 
 		ROS_DEBUG_STREAM("[LIDARServoManager] Sent a counterclockwise motion command. Current position: " << pan_angle_);
+		ros::Duration(0.05).sleep();
 	}
 
 	output_cloud_names_.clear();
@@ -235,6 +237,7 @@ void LIDARServoManager::getOutputClouds()
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
+		ros::Duration(0.05).sleep();
 	}
 }
 
@@ -292,6 +295,7 @@ bool LIDARServoManager::updateJoints()
 	  	lidar_frame_broadcaster.sendTransform(lidar_transform);
 	  	//ROS_DEBUG_STREAM("Published a transform at: " << lidar_transform);
 	  	*/
+		ros::Duration(0.05).sleep();
 	}
 	if(correct_callbacks_ > 0)
 	{
