@@ -9,7 +9,7 @@
       pkg     = "laser_stitcher"
       type    = "laser_stitcher"
       args    = ""
-      output  = "screen"
+      output  = "log"
     >
   </node>
 

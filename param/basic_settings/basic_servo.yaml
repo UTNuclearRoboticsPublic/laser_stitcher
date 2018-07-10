@@ -31,3 +31,4 @@ lidar_servo_manager:
   fixed_start_pose:       false
   start_pose:             [ 1 ]
   scan_while_returning:   true
+  wait_time:              0.03

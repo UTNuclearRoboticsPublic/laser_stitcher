@@ -57,8 +57,7 @@ LaserStitcher::LaserStitcher()
 	ros::Duration(0.50).sleep();
 	ROS_INFO_STREAM("[LaserStitcher] Stitcher online and ready.");
 
-	while(ros::ok())
-		ros::spinOnce();
+	ros::spin();
 }
 
 /* ------------------------- Laser Callback -------------------------
@@ -66,13 +65,16 @@ LaserStitcher::LaserStitcher()
 */
 void LaserStitcher::laserCallback(sensor_msgs::LaserScan scan_in)
 { 
-	// Scale intensities, if necessary
+	// Scale intensities based on distance, if necessary
+	//   Return intensities decrease as some function of distance regardless of surface type and angle
+	//   Here is a simple implementation to scale intensities by some power of their distance (specified in parameter yaml file) 
 	if(scale_intensities_)
 	{
 		for(int i=0; i<scan_in.ranges.size(); i++)
 			scan_in.intensities[i] *= pow(scan_in.ranges[i],intensity_scale_exp_);
 	}  
-	// Try/Catch to prevent crashing on TF exception
+	// Actual Transform and Cloud Building
+	//   Try/Catch to prevent crashing on TF exception
 	try{
 		if(is_running_)
 		{
@@ -85,12 +87,9 @@ void LaserStitcher::laserCallback(sensor_msgs::LaserScan scan_in)
 		  	sensor_msgs::PointCloud2 new_planar_cloud;
 		  	scan_converter_.transformLaserScanToPointCloud(output_frame_, scan_in, new_planar_cloud, listener_);
 		  	pcl::PointCloud<pcl::PointXYZI>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-		  	ROS_ERROR_STREAM("lasersize: " << scan_in.ranges.size());
-		  	ROS_ERROR_STREAM("sizes: " << new_planar_cloud.width*new_planar_cloud.height << " " << temp_cloud->points.size());
 		  	pcl::fromROSMsg(new_planar_cloud, *temp_cloud);
 		  	pcl::toROSMsg(*temp_cloud, new_planar_cloud);
 		  	planar_cloud_pub_.publish(new_planar_cloud);
-		  	ROS_ERROR_STREAM("sizes: " << new_planar_cloud.width*new_planar_cloud.height << " " << temp_cloud->points.size());
 		  	ROS_DEBUG_STREAM("[LaserStitcher] Laser scan caught! Publishing a planar scan on topic " << planar_cloud_pub_.getTopic() << " with size " << new_planar_cloud.width*new_planar_cloud.height);
 
 		  	const sensor_msgs::PointCloud2 previous_cloud_state = current_scan_;

@@ -58,7 +58,7 @@ ServoManagerPositional::ServoManagerPositional()
 	nh_.param<float>("servo_manager_positional/pan_speed", pan_speed_, 0.3);
 	nh_.param<float>("servo_manager_positional/pan_speed_returning", pan_speed_returning_, pan_speed_);
 	nh_.param<bool>("servo_manager_positional/scan_while_returning", scan_while_returning_, false);
-	wait_time_ = 0.01; 		// seconds
+	nh_.param<float>("servo_manager_positional/wait_time", wait_time_, 0.03); 		// seconds
 
 
 	// Commence operation!
@@ -140,6 +140,7 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 		}
 
 		ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a counterclockwise motion command. Current position: " << pan_angle_);
+
 	}
 	
 	if(!scan_while_returning_)
@@ -231,8 +232,8 @@ bool ServoManagerPositional::updateJoints()
 {
 	callbacks_received_ = 0;
 	correct_callbacks_ = 0;
-	ros::Duration time_elapsed;
 	ros::Time time_started = ros::Time::now();
+	ros::Duration time_elapsed = ros::Time::now() - time_started;
 	while(correct_callbacks_ < 1 && callbacks_received_ < 100 && time_elapsed < ros::Duration(2.0) && ros::ok())
 	{
 		ros::Duration(wait_time_).sleep();
