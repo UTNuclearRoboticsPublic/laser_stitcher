@@ -2,7 +2,7 @@
 <launch>
 
 	<include file="$(find flir_ptu_driver)/launch/ptu.launch"> </include>
-	<include file="$(find urg_node)/launch/urg_lidar.launch"> </include>
+	<include file="$(find urg_node)/launch/urg_rapid.launch"> </include>
 	<include file="$(find laser_stitcher)/launch/servo_manager.launch"> </include>
 
 	<!-- Static Transform Publishers !-->
