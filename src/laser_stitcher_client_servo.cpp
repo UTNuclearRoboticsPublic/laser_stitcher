@@ -34,10 +34,7 @@ int main(int argc, char** argv)
 		else
 		{	
 			ROS_INFO_STREAM("[LaserStitcherClient] Successfully called scanning service.");
-			for(int i=0; i<scan_srv.response.output_clouds.size(); i++)
-			{
-				ROS_INFO_STREAM("\t " << scan_srv.response.cloud_names[i] << " cloud size: " << scan_srv.response.output_clouds[i].height*scan_srv.response.output_clouds[i].width << " in frame " << scan_srv.response.output_clouds[i].header.frame_id);
-			}
+			ROS_INFO_STREAM("\t Final cloud size: " << scan_srv.response.output_cloud.height*scan_srv.response.output_cloud.width << " in frame " << scan_srv.response.output_cloud.header.frame_id);
 		}
 		num_scans++;
 	}

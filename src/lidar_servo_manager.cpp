@@ -51,7 +51,7 @@ LIDARServoManager::LIDARServoManager()
 		}
 	
 	// Topic for output cloud - don't know if we actually need this? After the change to output topic architecture.  
-	nh_.param<std::string>("lidar_servo_manager/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");
+	nh_.param<std::string>("laser_stitcher/partial_scan_topic", output_cloud_topic_, "laser_stitcher/partial_cloud");
 
 	// Procedural parameters... 
 	nh_.param<float>("lidar_servo_manager/pan_speed", pan_speed_, 0.3);
@@ -206,14 +206,9 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 		ROS_DEBUG_STREAM("[LIDARServoManager] Sent a counterclockwise motion command. Current position: " << pan_angle_);
 	}
 
-	output_cloud_names_.clear();
-	output_clouds_.clear();
-	getOutputClouds();
-	for(int i=0; i<output_clouds_.size(); i++)
-	{
-		res.cloud_names.push_back(output_cloud_names_[i]);
-		res.output_clouds.push_back(output_clouds_[i]);
-	}
+	ROS_INFO_STREAM("[LIDARServoManager] Finished one scanning routine, capturing output clouds.");
+	getOutputCloud();
+	res.output_cloud = final_cloud_;
 
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[LIDARServoManager] About to publish message to turn scanning routine off!");
@@ -225,10 +220,10 @@ bool LIDARServoManager::stationaryScan(laser_stitcher::stationary_scan::Request 
 
 // Output Cloud Gatherer
 //   This is run at the end of each routine --> populates output of service object from stationaryScan function
-void LIDARServoManager::getOutputClouds()
+void LIDARServoManager::getOutputCloud()
 {
 	still_need_cloud_ = true;
-	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &LIDARServoManager::outputCallback, this);
+	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic_, 1, &LIDARServoManager::outputCallback, this);
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
@@ -237,18 +232,14 @@ void LIDARServoManager::getOutputClouds()
 }
 
 // Laser_Stitcher Cloud Output Callback
-//   Used internally within getOutputClouds
-//   Just catches each output cloud from laser_stitcher and assigns them to stationaryScan service object list
+//   Used internally within getOutputCloud
+//   Just catches the final output cloud from laser_stitcher and assigns it to stationaryScan service object results
 //   Then tells the owning class that it's done and we can end
-void LIDARServoManager::outputCallback(const laser_stitcher::stitched_clouds output_clouds)
+void LIDARServoManager::outputCallback(const sensor_msgs::PointCloud2 final_cloud)
 {
 	if(still_need_cloud_)
 	{
-		for(int i=0; i<output_clouds.clouds.size(); i++)
-		{
-			output_cloud_names_.push_back(output_clouds.cloud_names[i]);
-			output_clouds_.push_back(output_clouds.clouds[i]);
-		}
+		final_cloud_ = final_cloud;
 		still_need_cloud_ = false;
 	}
 	output_cloud_sub_.shutdown();

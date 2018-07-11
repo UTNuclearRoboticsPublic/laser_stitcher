@@ -23,7 +23,6 @@ lidar_servo_manager:
   joint_names:            [ptu_pan, ptu_tilt]
   lidar_frame:            scan
   service_name:           laser_stitcher/stationary_scan
-  output_cloud_topic:     laser_stitcher/output_cloud_list
   min_angle:              -1.57
   max_angle:              1.57
   pan_speed:              0.1

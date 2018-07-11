@@ -52,7 +52,7 @@ ServoManagerPositional::ServoManagerPositional()
 		}
 	
 	// Topic for output cloud - don't know if we actually need this? After the change to output topic architecture.  
-	nh_.param<std::string>("servo_manager_positional/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");
+	nh_.param<std::string>("laser_stitcher/partial_scan_topic", output_cloud_topic_, "laser_stitcher/partial_cloud");
 
 	// Procedural parameters... 
 	nh_.param<float>("servo_manager_positional/pan_speed", pan_speed_, 0.3);
@@ -177,14 +177,9 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 		ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a counterclockwise motion command. Current position: " << pan_angle_);
 	}
 
-	output_cloud_names_.clear();
-	output_clouds_.clear();
-	getOutputClouds();
-//	for(int i=0; i<output_clouds_.size(); i++)
-//	{
-//		res.cloud_names.push_back(output_cloud_names_[i]);
-//		res.output_clouds.push_back(output_clouds_[i]);
-//	}
+	ROS_INFO_STREAM("[ServoManagerPositional] Finished one scanning routine, capturing output clouds.");
+	getOutputCloud();
+	res.output_cloud = final_cloud_;
 
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[ServoManagerPositional] About to publish message to turn scanning routine off!");
@@ -198,29 +193,26 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 
 // Output Cloud Gatherer
 //   This is run at the end of each routine --> populates output of service object from stationaryScan function
-void ServoManagerPositional::getOutputClouds()
+void ServoManagerPositional::getOutputCloud()
 {
-//	still_need_cloud_ = true;
-//	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &ServoManagerPositional::outputCallback, this);
-//	while(still_need_cloud_ && ros::ok())
-//	{
-//		ros::spinOnce();
-//	}
+	still_need_cloud_ = true;
+	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic_, 1, &ServoManagerPositional::outputCallback, this);
+	while(still_need_cloud_ && ros::ok())
+	{
+		ros::spinOnce();
+		ros::Duration(wait_time_).sleep();
+	}
 }
 
 // Laser_Stitcher Cloud Output Callback
-//   Used internally within getOutputClouds
+//   Used internally within getOutputCloud
 //   Just catches each output cloud from laser_stitcher and assigns them to stationaryScan service object list
 //   Then tells the owning class that it's done and we can end
-void ServoManagerPositional::outputCallback(const laser_stitcher::stitched_clouds output_clouds)
+void ServoManagerPositional::outputCallback(const sensor_msgs::PointCloud2 output_cloud)
 {
 	if(still_need_cloud_)
 	{
-		for(int i=0; i<output_clouds.clouds.size(); i++)
-		{
-			output_cloud_names_.push_back(output_clouds.cloud_names[i]);
-			output_clouds_.push_back(output_clouds.clouds[i]);
-		}
+		final_cloud_ = output_cloud;
 		still_need_cloud_ = false;
 	}
 	output_cloud_sub_.shutdown();

@@ -21,15 +21,6 @@
     >
   </node>
 
-  <node
-      name    = "laser_mapper"
-      pkg     = "laser_mapper"
-      type    = "laser_mapper"
-      args    = ""
-      output  = "screen"
-    >
-  </node>
-
   <include file="$(find urg_node)/launch/urg_lidar.launch"> </include>
 
   <node
@@ -61,15 +52,6 @@
     args    = ""
     output  = "screen"
   >
-  </node>
-
-  <node
-      name    = "pointcloud_processing_server"
-      pkg     = "pointcloud_processing_server"
-      type    = "pointcloud_processing_server"
-      args    = "-intensity"
-      output  = "screen"
-    >
   </node>
 
 </launch>

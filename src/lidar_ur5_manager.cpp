@@ -14,7 +14,7 @@ LIDARUR5Manager::LIDARUR5Manager()
 	scanning_state_pub_ = nh_.advertise<std_msgs::Bool>(scanning_state_topic, 1);  
 
 	// Topic for output cloud - don't know if we actually need this? After the change to output topic architecture.  
-	nh_.param<std::string>("lidar_ur5_manager/output_cloud_topic", output_clouds_topic_, "laser_stitcher/output_cloud_list");
+	nh_.param<std::string>("laser_stitcher/partial_scan_topic", output_cloud_topic_, "laser_stitcher/partial_cloud");
 	
 	// Subscriber to UR5 State - sensor_msgs/JointState 
 	//   Separate the JOINT_STATE subscriber so it can be spun within the STATIONARY_SCAN service call
@@ -161,15 +161,10 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 		ROS_DEBUG_STREAM("[LIDARUR5Manager] Sent a counterclockwise motion command. Current position: " << wrist_angle_);
 	}
 
-	output_cloud_names_.clear();
-	output_clouds_.clear();
-	getOutputClouds();
-	for(int i=0; i<output_clouds_.size(); i++)
-	{
-		res.cloud_names.push_back(output_cloud_names_[i]);
-		res.output_clouds.push_back(output_clouds_[i]);
-	}
-
+	ROS_INFO_STREAM("[LIDARUR5Manager] Finished one scanning routine, capturing output clouds.");
+	getOutputCloud();
+	res.output_cloud = final_cloud_;
+	
 	scanning_state.data = false;
 	ROS_INFO_STREAM("[LIDARUR5Manager] About to publish turn scanning routine off message");
 	scanning_state_pub_.publish(scanning_state); 			// Shut down laser stitcher process
@@ -180,29 +175,26 @@ bool LIDARUR5Manager::stationaryScan(laser_stitcher::stationary_scan::Request &r
 
 // Output Cloud Gatherer
 //   This is run at the end of each routine --> populates output of service object from stationaryScan function
-void LIDARUR5Manager::getOutputClouds()
+void LIDARUR5Manager::getOutputCloud()
 {
 	still_need_cloud_ = true;
-	output_cloud_sub_ = nh_.subscribe<laser_stitcher::stitched_clouds>(output_clouds_topic_, 1, &LIDARUR5Manager::outputCallback, this);
+	output_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(output_cloud_topic_, 1, &LIDARUR5Manager::outputCallback, this);
 	while(still_need_cloud_ && ros::ok())
 	{
 		ros::spinOnce();
+		ros::Duration(wait_time_).sleep();
 	}
 }
 
 // Laser_Stitcher Cloud Output Callback
-//   Used internally within getOutputClouds
-//   Just catches each output cloud from laser_stitcher and assigns them to stationaryScan service object list
+//   Used internally within getOutputCloud
+//   Just catches the final output cloud from laser_stitcher and assigns it to stationaryScan service object results
 //   Then tells the owning class that it's done and we can end
-void LIDARUR5Manager::outputCallback(const laser_stitcher::stitched_clouds output_clouds)
+void LIDARUR5Manager::outputCallback(const sensor_msgs::PointCloud2 final_cloud)
 {
 	if(still_need_cloud_)
 	{
-		for(int i=0; i<output_clouds.clouds.size(); i++)
-		{
-			output_cloud_names_.push_back(output_clouds.cloud_names[i]);
-			output_clouds_.push_back(output_clouds.clouds[i]);
-		}
+		final_cloud_ = final_cloud;
 		still_need_cloud_ = false;
 	}
 	output_cloud_sub_.shutdown();

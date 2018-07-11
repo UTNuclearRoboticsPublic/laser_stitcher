@@ -11,8 +11,6 @@
 #include <tf/transform_listener.h>
 #include <rosbag/bag.h>
 
-#include "laser_stitcher/stitched_clouds.h"
-
 #include <pcl_ros/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 
