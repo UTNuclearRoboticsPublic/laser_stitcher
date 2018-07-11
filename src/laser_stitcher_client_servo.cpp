@@ -17,9 +17,13 @@ int main(int argc, char** argv)
 	{
 		laser_stitcher::stationary_scan scan_srv;
 		float temp_angle;
-		nh.param<float>("servo_manager_positional/min_angle", temp_angle, -1.57);
+		if(!nh.param<float>("servo_manager_positional/min_angle", temp_angle, -1.57))
+			if(!nh.param<float>("lidar_servo_manager/min_angle", temp_angle, -1.57))
+				ROS_WARN_STREAM("[LaserStitcherClient] Unable to get min_angle variable from the parameter server - defaulting to " << temp_angle);
 		scan_srv.request.min_angle = temp_angle;
-		nh.param<float>("servo_manager_positional/max_angle", temp_angle, 1.57);
+		if(!nh.param<float>("servo_manager_positional/max_angle", temp_angle, -1.57))
+			if(!nh.param<float>("lidar_servo_manager/max_angle", temp_angle, -1.57))
+				ROS_WARN_STREAM("[LaserStitcherClient] Unable to get max_angle variable from the parameter server - defaulting to " << temp_angle);
 		scan_srv.request.max_angle = temp_angle;
 		scan_srv.request.external_angle_sensing = false;
 
