@@ -14,7 +14,7 @@ laser_stitcher:
   scale_intensities:        true
   intensity_scale_exp:      1.0
   # client stuff 
-  should_loop:              false
+  should_loop:              true
   reset_cloud_when_stopped: false
   should_save:              false
 servo_manager_positional:
@@ -24,8 +24,8 @@ servo_manager_positional:
   lidar_frame:            hokuyo_lidar_base
   service_name:           laser_stitcher/stationary_scan
   output_cloud_topic:     laser_stitcher/output_cloud_list
-  min_angle:              -1.5708
-  max_angle:              1.5708
+  min_angle:              -2.5
+  max_angle:              -1
   pan_speed:              0.05
   pan_speed_returning:    0.05
   fixed_start_pose:       false

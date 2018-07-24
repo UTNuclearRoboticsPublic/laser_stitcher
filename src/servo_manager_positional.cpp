@@ -306,8 +306,8 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "servo_manager_positional");
 
     // Uncomment the following to enable DEBUGGING output
-    if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
-      ros::console::notifyLoggerLevelsChanged();
+    //if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
+    //  ros::console::notifyLoggerLevelsChanged();
 
 	ServoManagerPositional servo_manager;
 }

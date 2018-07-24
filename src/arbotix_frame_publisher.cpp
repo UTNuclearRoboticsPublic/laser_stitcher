@@ -23,7 +23,7 @@ LIDARFramePub::LIDARFramePub()
   	//   Set Translation (fixed, here)
   	lidar_transform_.transform.translation.x = 0.0;
   	lidar_transform_.transform.translation.y = 0.0;
-  	lidar_transform_.transform.translation.z = 1.0;
+  	lidar_transform_.transform.translation.z = 19*0.0254;
 
   	ros::NodeHandle nh;
 	ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &LIDARFramePub::jointstateCallback, this);
