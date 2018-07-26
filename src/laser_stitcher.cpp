@@ -120,10 +120,15 @@ void LaserStitcher::setScanningState(const std_msgs::Bool::ConstPtr& new_state)
 		if(save_data_)
 		{
 			rosbag::Bag bag;
-			std::string bag_name = "laser_stitcher" + std::to_string(ros::Time::now().toSec()) + ".bag";
+			std::string bag_name = "laser_stitcher_" + std::to_string(ros::Time::now().toSec()) + ".bag";
 			bag.open(bag_name, rosbag::bagmode::Write);
 			bag.write(full_scan_pub_.getTopic(), ros::Time::now(), current_scan_);
 			ROS_INFO_STREAM("[LaserStitcher] Saved a ROSBAG to the file " << bag_name);
+
+			pcl::PointCloud<pcl::PointXYZI> temp_cloud;
+			pcl::fromROSMsg(current_scan_, temp_cloud);
+		    pcl::io::savePCDFileASCII("laser_stitcher_" + std::to_string(ros::Time::now().toSec()) + ".pcd", temp_cloud);
+		    ROS_INFO_STREAM("[LaserStitcher] Saved " << temp_cloud.points.size() << " data points to a pcd file");
 		}
 		full_scan_pub_.publish(current_scan_);
 		ROS_INFO_STREAM("[LaserStitcher] Finished a stitching routine. Final cloud size: " << current_scan_.height * current_scan_.width << ".");
