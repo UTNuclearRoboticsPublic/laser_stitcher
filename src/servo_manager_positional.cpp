@@ -71,10 +71,7 @@ ServoManagerPositional::ServoManagerPositional()
 //   Only input parameters are min/max angle 
 //   Ouput parameters are clouds and cloud names  
 bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res)
-{ 
-	// Enforce max speed on joints...
-	nh_.setParam("/arbotix/joints/" + pan_joint_ + "/max_speed", pan_speed_);
-
+{ 	
 	// Declare the positional command to the servos 
 	std_msgs::Float64 pos_cmd;
 	pos_cmd.data = 0.0;	
