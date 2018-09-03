@@ -44,7 +44,6 @@ LaserStitcher::LaserStitcher()
 
 	// ------------------ TF Stuff ------------------
 	nh_.param<std::string>("laser_stitcher/output_frame", output_frame_, "map");
-	//tf::TransformListener listener_;
 
 	// ----------- Basic Processing Stuff -----------
 	is_running_ = false; 
@@ -102,7 +101,7 @@ void LaserStitcher::laserCallback(sensor_msgs::LaserScan scan_in)
 	}
 	catch(tf2::TransformException e)
 	{
-		ROS_ERROR_THROTTLE(2, "%s", e.what());
+		ROS_ERROR_THROTTLE(2, "[LaserStitcher] %s", e.what());
 	}
 
 }

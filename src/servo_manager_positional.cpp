@@ -227,30 +227,7 @@ bool ServoManagerPositional::updateJoints()
 	{
 		ros::Duration(wait_time_).sleep();
 		joint_state_queue_.callAvailable(ros::WallDuration());
-		time_elapsed = ros::Time::now() - time_started;
-/*
-		// If necessary...
-		// Manually build the relevant frame for the LIDAR
-		//   Build transform, set frames and time
-	  	geometry_msgs::TransformStamped lidar_transform;
-	  	lidar_transform.header.stamp = ros::Time::now();
-	  	lidar_transform.header.frame_id = parent_frame_name_;
-	  	lidar_transform.child_frame_id = lidar_frame_name_;
-	  	//   Set Translation (fixed, here)
-	  	lidar_transform.transform.translation.x = 0.0;
-	  	lidar_transform.transform.translation.y = 0.0;
-	  	lidar_transform.transform.translation.z = 1.0;
-	  	//   Set Rotation (pan is dynamic)
-	  	tf2::Quaternion rotation;
-	  	rotation.setRPY(0.0, -1.5708, pan_angle_);
-	  	lidar_transform.transform.rotation.x = rotation.x();
-	  	lidar_transform.transform.rotation.y = rotation.y();
-	  	lidar_transform.transform.rotation.z = rotation.z();
-	  	lidar_transform.transform.rotation.w = rotation.w();
-	  	//   Broadcast it!
-	  	lidar_frame_broadcaster.sendTransform(lidar_transform);
-	  	//ROS_DEBUG_STREAM("Published a transform at: " << lidar_transform);
-*/	  	
+		time_elapsed = ros::Time::now() - time_started;	  	
 	}
 	if(correct_callbacks_ > 0)
 	{

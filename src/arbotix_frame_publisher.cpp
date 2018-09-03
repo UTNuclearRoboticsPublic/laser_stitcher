@@ -18,7 +18,7 @@ private:
 LIDARFramePub::LIDARFramePub()
 {
 	//   Populate header fields of transform
-    lidar_transform_.header.frame_id = "map";//parent_frame_name_;
+    lidar_transform_.header.frame_id = "base_link";//parent_frame_name_;
   	lidar_transform_.child_frame_id = "hokuyo_lidar_base";//lidar_frame_name_;
   	//   Set Translation (fixed, here)
   	lidar_transform_.transform.translation.x = 0.0;
@@ -40,7 +40,7 @@ void LIDARFramePub::jointstateCallback(sensor_msgs::JointState jointstate)
   	lidar_transform_.header.stamp = jointstate.header.stamp;
   	//   Set Rotation (pan is dynamic)
   	tf2::Quaternion rotation;
-  	rotation.setRPY(0.0, -1.5708, pan_angle_+3.14159);
+  	rotation.setRPY(0.0, -1.5708, pan_angle_);
   	lidar_transform_.transform.rotation.x = rotation.x();
   	lidar_transform_.transform.rotation.y = rotation.y();
   	lidar_transform_.transform.rotation.z = rotation.z();
