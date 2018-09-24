@@ -1,0 +1,12 @@
+
+<launch>
+
+	<node 	name = "laser_to_csv"
+			pkg  = "laser_stitcher"
+			type = "laser_to_csv"
+	> 
+		<param name = "laser_topic" 	value = "hokuyo_scan" />
+		<param name = "laser_topic" 	value = "hokuyo_scan" />
+	</node>
+
+</launch>

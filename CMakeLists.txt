@@ -227,6 +227,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+add_executable(laser_to_csv src/laser_to_csv.cpp )
+add_dependencies(
+   laser_to_csv 
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  laser_to_csv 
+  ${catkin_LIBRARIES}
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
