@@ -11,7 +11,7 @@ laser_stitcher:
   scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
   # laser_stitching
   sleepy_time:              0.1
-  scale_intensities:        true
+  scale_intensities:        false
   intensity_scale_exp:      1.0
   # client stuff 
   should_loop:              true
@@ -24,8 +24,8 @@ servo_manager_positional:
   lidar_frame:            hokuyo_lidar_base
   service_name:           laser_stitcher/stationary_scan
   output_cloud_topic:     laser_stitcher/output_cloud_list
-  min_angle:              -2.5
-  max_angle:              -1
+  min_angle:              -1.57
+  max_angle:              1.57
   pan_speed:              0.05
   pan_speed_returning:    0.05
   fixed_start_pose:       false
