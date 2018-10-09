@@ -237,6 +237,16 @@ target_link_libraries(
   laser_to_csv 
   ${catkin_LIBRARIES}
 )
+add_executable(laser_to_csv_averaged src/laser_to_csv_averaged.cpp )
+add_dependencies(
+   laser_to_csv_averaged 
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  laser_to_csv_averaged 
+  ${catkin_LIBRARIES}
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

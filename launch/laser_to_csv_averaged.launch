@@ -1,0 +1,15 @@
+
+<launch>
+
+	<node 	name = "laser_to_csv_averaged"
+			pkg  = "laser_stitcher"
+			type = "laser_to_csv_averaged"
+			output = "screen"
+	> 
+		<param name = "laser_topic" 			value = "hokuyo_scan" />
+		<param name = "voxel_leaf_size" 		value = "0.0015" />
+		<param name = "voxel_leaf_size_depth" 	value = "0.2" />
+		<param name = "scans_desired" 			value = "30" />
+	</node>
+
+</launch>

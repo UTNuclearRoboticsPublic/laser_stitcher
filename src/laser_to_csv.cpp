@@ -48,7 +48,7 @@ void laserCallback(sensor_msgs::LaserScan scan)
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "laser_stitcher");
+	ros::init(argc, argv, "laser_to_csv");
 
 //if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
 //    ros::console::notifyLoggerLevelsChanged();
