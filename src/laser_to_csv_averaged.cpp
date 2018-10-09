@@ -79,7 +79,8 @@ int main(int argc, char** argv)
 //    ros::console::notifyLoggerLevelsChanged();
 
 	ros::NodeHandle nh;
-
+	ros::Publisher output_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("voxelized_planar_cloud", 1);
+	
 	std::string laser_topic;
 	nh.param<std::string>("laser_to_csv/laser_topic", laser_topic, "hokuyo_scan");
 	ROS_INFO_STREAM("Subscribing to LaserScan on topic " << laser_topic);	
@@ -87,7 +88,7 @@ int main(int argc, char** argv)
 
 	nh.param<int>("laser_to_csv/scans_desired", scans_desired_, 20);
 	nh.param<float>("laser_to_csv/voxel_leaf_size", voxel_leaf_size_, 0.002);
-	nh.param<float>("laser_to_csv/voxel_leaf_size_depth", voxel_leaf_size_depth_, 0.002);
+	nh.param<float>("laser_to_csv/voxel_leaf_size_depth", voxel_leaf_size_depth_, 0.2);
 	
 	ROS_INFO_STREAM("[LaserToCSV] Waiting a second to ensure listener buffer gets filled with frames...");
 	ros::Duration(1.0).sleep();
@@ -104,7 +105,7 @@ int main(int argc, char** argv)
 	pcl::toROSMsg(voxelized_scan_, output_cloud);
 	output_cloud.header.frame_id = "hokuyo_lidar";
 	output_cloud.header.stamp = ros::Time::now();
-	ros::Publisher output_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("voxelized_planar_cloud", 1);
 	output_cloud_pub.publish(output_cloud);
+	ROS_INFO_STREAM("size: " << voxelized_scan_.points.size() << " header: " << output_cloud.header);
 	ros::Duration(2.0).sleep();
 }

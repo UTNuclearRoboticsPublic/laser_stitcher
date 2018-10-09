@@ -11,12 +11,12 @@ laser_stitcher:
   scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
   # laser_stitching
   sleepy_time:              0.1
-  scale_intensities:        false
-  intensity_scale_exp:      1.0
+  scale_intensities:        true
+  intensity_scale_exp:      0.45
   # client stuff 
-  should_loop:              true
+  should_loop:              false
   reset_cloud_when_stopped: false
-  should_save:              false
+  should_save:              true
 servo_manager_positional:
   angle_command_topic:    /servo_tilt_joint/command
   jointstate_topic:       /joint_states
