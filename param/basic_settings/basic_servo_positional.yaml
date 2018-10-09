@@ -18,9 +18,9 @@ laser_stitcher:
   reset_cloud_when_stopped: false
   should_save:              false
 servo_manager_positional:
-  angle_command_topic:    /servo_tilt_joint/command
-  jointstate_topic:       /joint_states
-  pan_joint:              servo_tilt_joint
+  angle_command_topic:    /servo_pan_joint/command
+  jointstate_topic:       /arbotix_joint_states
+  pan_joint:              servo_pan_joint
   lidar_frame:            hokuyo_lidar_base
   service_name:           laser_stitcher/stationary_scan
   output_cloud_topic:     laser_stitcher/output_cloud_list

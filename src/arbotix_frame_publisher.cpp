@@ -26,14 +26,14 @@ LIDARFramePub::LIDARFramePub()
   	lidar_transform_.transform.translation.z = 19*0.0254;
 
   	ros::NodeHandle nh;
-	ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &LIDARFramePub::jointstateCallback, this);
+	ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/arbotix_joint_states", 1, &LIDARFramePub::jointstateCallback, this);
 
 	ros::spin();
 }
 
 void LIDARFramePub::jointstateCallback(sensor_msgs::JointState jointstate)
 {
-	float pan_angle_ = jointstate.position[0];
+	float pan_angle_ = jointstate.position[1];
 	ROS_INFO_STREAM("entered here... " << pan_angle_);
 	// Manually build the relevant frame for the LIDAR
 	//   Build transform, set frames and time
