@@ -18,12 +18,12 @@ private:
 LIDARFramePub::LIDARFramePub()
 {
 	//   Populate header fields of transform
-    lidar_transform_.header.frame_id = "base_link";//parent_frame_name_;
+    lidar_transform_.header.frame_id = "laser_scan_link";//parent_frame_name_;
   	lidar_transform_.child_frame_id = "hokuyo_lidar_base";//lidar_frame_name_;
   	//   Set Translation (fixed, here)
-  	lidar_transform_.transform.translation.x = 0.0;
+  	lidar_transform_.transform.translation.x = 0.02;
   	lidar_transform_.transform.translation.y = 0.0;
-  	lidar_transform_.transform.translation.z = 19*0.0254;
+  	lidar_transform_.transform.translation.z = .30;
 
   	ros::NodeHandle nh;
 	ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/arbotix_joint_states", 1, &LIDARFramePub::jointstateCallback, this);
@@ -40,7 +40,7 @@ void LIDARFramePub::jointstateCallback(sensor_msgs::JointState jointstate)
   	lidar_transform_.header.stamp = jointstate.header.stamp;
   	//   Set Rotation (pan is dynamic)
   	tf2::Quaternion rotation;
-  	rotation.setRPY(0.0, -1.5708, pan_angle_);
+  	rotation.setRPY(1.508, 0.0, pan_angle_);
   	lidar_transform_.transform.rotation.x = rotation.x();
   	lidar_transform_.transform.rotation.y = rotation.y();
   	lidar_transform_.transform.rotation.z = rotation.z();
