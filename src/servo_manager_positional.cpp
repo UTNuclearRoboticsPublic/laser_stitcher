@@ -95,7 +95,7 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 	if(fixed_start_state_)
 	{
 		// Currently set up only to reset the state of one servo in the PTU... might come back and add second if we use two
-		nh_.setParam("arbotix/joints/servo_tilt_joint/max_speed", 20);
+		nh_.setParam("arbotix/joints/servo_pan_joint/max_speed", 20);
 		pos_cmd.data = start_state_[0] + overshoot_ * ( (start_state_[0] > 0) - (start_state_[0] < 0) );
 		ROS_INFO_STREAM("[ServoManagerPositional] Moving to initial position:  " << pos_cmd);
 		while(std::fabs(pan_angle_ - start_state_[0]) > deadband_ && ros::ok())
@@ -117,7 +117,7 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 			}
 			ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a motion command to reach start pose of " << pos_cmd.data << ". Current position: " << pan_angle_);
 		}
-		nh_.setParam("arbotix/joints/servo_tilt_joint/max_speed", pan_speed_);
+		nh_.setParam("arbotix/joints/servo_pan_joint/max_speed", pan_speed_);
 	}
 
 	min_angle_ = req.min_angle;

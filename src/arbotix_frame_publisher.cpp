@@ -40,7 +40,7 @@ void LIDARFramePub::jointstateCallback(sensor_msgs::JointState jointstate)
   	lidar_transform_.header.stamp = jointstate.header.stamp;
   	//   Set Rotation (pan is dynamic)
   	tf2::Quaternion rotation;
-  	rotation.setRPY(1.508, 0.0, pan_angle_);
+  	rotation.setRPY(0.0, -1.5708, pan_angle_);
   	lidar_transform_.transform.rotation.x = rotation.x();
   	lidar_transform_.transform.rotation.y = rotation.y();
   	lidar_transform_.transform.rotation.z = rotation.z();
