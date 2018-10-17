@@ -95,10 +95,29 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 	if(fixed_start_state_)
 	{
 		// Currently set up only to reset the state of one servo in the PTU... might come back and add second if we use two
-		pos_cmd.data = start_state_[0];
+		nh_.setParam("arbotix/joints/servo_tilt_joint/max_speed", 20);
+		pos_cmd.data = start_state_[0] + overshoot_ * ( (start_state_[0] > 0) - (start_state_[0] < 0) );
 		ROS_INFO_STREAM("[ServoManagerPositional] Moving to initial position:  " << pos_cmd);
-		ros::Duration(3.0).sleep();
-		servo_pub_.publish(pos_cmd);
+		while(std::fabs(pan_angle_ - start_state_[0]) > deadband_ && ros::ok())
+		{
+			servo_pub_.publish(pos_cmd);
+
+			int joint_update_attempts = 0;
+			int max_joint_update_attempts = 5;
+			while(!this->updateJoints() && joint_update_attempts < max_joint_update_attempts)
+			{
+				ROS_ERROR_STREAM("[ServoManagerPositional] Failed to update joints " << joint_update_attempts << " times.");
+				joint_update_attempts++;
+				ros::Duration(0.05).sleep();
+			}
+			if(joint_update_attempts >= max_joint_update_attempts)
+			{
+				ROS_ERROR_STREAM("[ServoManagerPositional] Failed to update joints too many times... exiting this service call.");
+				return false;
+			}
+			ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a motion command to reach start pose of " << pos_cmd.data << ". Current position: " << pan_angle_);
+		}
+		nh_.setParam("arbotix/joints/servo_tilt_joint/max_speed", pan_speed_);
 	}
 
 	min_angle_ = req.min_angle;
@@ -115,7 +134,7 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 
 	// Turn counterclockwise prior to scanning - get to 'max_angle' starting point:
 	ROS_INFO_STREAM("[ServoManagerPositional] Moving pan joint from " << pan_angle_ << " towards point " << max_angle_ << " at speed " << pan_speed_returning_);
-	while(std::abs(pan_angle_ - max_angle_) > deadband_ && pan_angle_ < max_angle_ && ros::ok())
+	while(std::fabs(pan_angle_ - max_angle_) > deadband_ && pan_angle_ < max_angle_ && ros::ok())
 	{
 		pos_cmd.data = max_angle_ + overshoot_;
 		// Debugging output and send servo command
@@ -150,7 +169,7 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 
 	// Turn clockwise while scanning - get to 'min_angle' stopping point:
 	ROS_INFO_STREAM("[ServoManagerPositional] Moving pan joint from " << pan_angle_ << " towards point " << min_angle_ << " at speed " << pan_speed_);
-	while(std::abs(pan_angle_ - min_angle_) > deadband_ && pan_angle_ > min_angle_ && ros::ok())
+	while(std::fabs(pan_angle_ - min_angle_) > deadband_ && pan_angle_ > min_angle_ && ros::ok())
 	{
 		pos_cmd.data = min_angle_ - overshoot_;
 		// Debugging output and send servo command
