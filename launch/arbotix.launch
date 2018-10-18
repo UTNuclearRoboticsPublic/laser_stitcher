@@ -31,6 +31,11 @@
   </node>
 
   <node
+    name    = "sensor_tree_base_broadcaster"   pkg = "tf"   type = "static_transform_publisher"
+        args    = "-0.3 0.0 0.849   0.0 0.0 0.0   /base_link /arbotix_base_frame    100"
+  > </node>
+
+  <node
     name    = "lidar_offset_corrector"   pkg = "tf"   type = "static_transform_publisher"
         args    = "0 0 0    -0.013 0.028 0.0   /hokuyo_lidar_base /hokuyo_lidar    100"
   > </node>
