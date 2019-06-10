@@ -1,0 +1,30 @@
+<launch>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/rgbd_aggregator.yaml"/>
+
+  <node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+
+  <include file="$(find urg_node)/launch/urg_lidar.launch"> </include>
+
+  <node
+    name    = "lidar_offset_corrector"   pkg = "tf"   type = "static_transform_publisher"
+        args    = "0 0 0    0.0 0.0 0.0   /map /r200_depth_optical_frame    100"
+  > </node>
+    
+  <node
+    name    = "rgbd_aggregator"
+    pkg     = "laser_stitcher"
+    type    = "rgbd_aggregator"
+    args    = ""
+    output  = "screen"
+  >
+  </node>
+
+</launch>

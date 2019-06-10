@@ -1,0 +1,35 @@
+
+laser_stitcher:
+  yaml_file_name:           canyon_mapper_output
+  output_frame:             map
+  # topics
+  planar_scan_topic:        laser_stitcher/planar_cloud
+  partial_scan_topic:       laser_stitcher/partial_cloud
+  full_scan_topic:          laser_stitcher/full_scan
+  laser_input:              false
+  laser_topic:              velodyne_points                 # input LIDAR sensor_msgs/laser_scan topic
+  reset_topic:              reset_map_scan                  # publishing to this topic resets cloud
+  scanning_state_topic:     laser_stitcher/scanning_state   # actuation manager publishes here to stop stitcher
+  # laser_stitching
+  sleepy_time:              0.1
+  scale_intensities:        true
+  intensity_scale_exp:      0.45
+  # client stuff 
+  should_loop:              false
+  reset_cloud_when_stopped: false
+  should_save:              true
+servo_manager_positional:
+  angle_command_topic:    /servo_pan_joint/command
+  jointstate_topic:       /arbotix_joint_states
+  pan_joint:              servo_pan_joint
+  lidar_frame:            velodyne
+  service_name:           laser_stitcher/stationary_scan
+  output_cloud_topic:     laser_stitcher/output_cloud_list
+  min_angle:              -0.3
+  max_angle:              3.05
+  pan_speed:              10
+  pan_speed_returning:    10
+  fixed_start_pose:       false
+  start_pose:             [ -1.55 ]
+  scan_while_returning:   true
+  wait_time:              0.03

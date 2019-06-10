@@ -1,0 +1,56 @@
+<launch>
+
+  <rosparam  command="load"  file="$(find laser_stitcher)/param/basic_settings/basic_default_puck.yaml"/>
+
+  <node 
+  	  name	  = "arbotix" 
+  	  pkg	  = "arbotix_python" 
+  	  type	  = "arbotix_driver" 
+  	  output  = "screen"
+  	>
+	  <rosparam command="load" file="$(find laser_stitcher)/param/arbotix/arbotix.yaml"/>
+  </node>
+
+  <node
+      name    = "laser_stitcher"
+      pkg     = "laser_stitcher"
+      type    = "laser_stitcher"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch"> </include>
+
+  <node
+      name    = "arbotix_frame_publisher"
+      pkg     = "laser_stitcher"
+      type    = "arbotix_frame_publisher"
+      args    = ""
+    >
+  </node>
+
+  <node
+    name    = "lidar_offset_corrector"   pkg = "tf"   type = "static_transform_publisher"
+        args    = "0 0 0    0.007 0.015 0.0   /base_link /laser_scan_link    100"
+  > </node>
+
+  <node
+      name    = "servo_manager_positional"
+      pkg     = "laser_stitcher"
+      type    = "servo_manager_positional"
+      args    = ""
+      output  = "screen"
+    >
+  </node>
+    
+  <node
+    name    = "laser_stitcher_client_servo"
+    pkg     = "laser_stitcher"
+    type    = "laser_stitcher_client_servo"
+    args    = ""
+    output  = "screen"
+  >
+  </node>
+
+</launch>

@@ -1,0 +1,15 @@
+
+
+<launch>
+
+	<rosparam  command="load"  file="$(find laser_stitcher)/param/other/intensity_calibration.yaml"/>
+	
+	<node
+		name    = "intensity_calibration"
+      	pkg     = "laser_stitcher"
+      	type    = "intensity_calibration"
+      	output  = "screen"
+  	> 
+	</node>
+
+</launch>

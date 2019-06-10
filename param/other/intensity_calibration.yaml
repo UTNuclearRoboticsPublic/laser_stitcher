@@ -1,0 +1,5 @@
+
+intensity_calibration:
+  bag_name:              /home/conor/ros_data/trees/Final_Scans/TerribleAHG_Room/registration_scans/fourth_spot/3dps/right.bag  #/home/conor/ros_data/trees/Final_Scans/TerribleAHG_Room/registration_scans/first_spot/3dps/primitive_search_right_wall1555540952.689221.bag
+  bag_topic:             /right_wall
+  z_offset:              0.0

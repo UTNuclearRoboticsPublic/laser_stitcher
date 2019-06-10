@@ -1,0 +1,15 @@
+
+
+<launch>
+
+	<rosparam  command="load"  file="$(find laser_stitcher)/param/other/hokuyo_intensity_mapping.yaml"/>
+	
+	<node
+		name    = "laser_stitcher"
+      	pkg     = "laser_stitcher"
+      	type    = "hokuyo_intensity_mapping"
+      	output  = "screen"
+  	> 
+	</node>
+
+</launch>

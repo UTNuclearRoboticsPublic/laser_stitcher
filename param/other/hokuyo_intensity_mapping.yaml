@@ -1,0 +1,14 @@
+
+hokuyo_intensity_mapping:
+  bag_prefix:                 /home/conor/ros_data/trees/Velodyne/Intensity Calibration/hokuyo_calibration/
+  bag_name_list:              ["7_5", "10", "12_5", "15", "17_5", "20", "22_5", "25", "27_5", "30", "32_5", "35", "37_5", "40", "42_5", "45", "47_5", "50", "52_5", "55", "57_5", "60", "72", "84", "96", "108", "120"]
+  bag_topic:                  /first_wall
+  z_offset:                   -0.3
+  angle_pixel_size:           0.005
+  depth_pixel_size:           0.005
+  intensity_pixel_size:       10000
+  output_file_name:           /home/conor/ros_data/trees/Velodyne/Intensity Calibration/hokuyo_calibration/data
+  filter_inputs:              true
+  filter_value:               0.0
+  voxelize_inputs:            true
+  input_voxel_leaf_size:      0.01

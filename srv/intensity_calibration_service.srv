@@ -1,0 +1,8 @@
+
+float32 z_offset
+sensor_msgs/PointCloud2 input_cloud
+string lookup_table_name
+
+---
+
+sensor_msgs/PointCloud2 normalized_cloud

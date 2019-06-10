@@ -1,0 +1,10 @@
+
+<launch>
+	<include file="$(find velodyne_driver)/launch/nodelet_manager.launch" />
+
+	<include file="$(find velodyne_pointcloud)/launch/cloud_nodelet.launch" >
+		<arg name="calibration"
+			 value="/home/conor/ros_data/trees/Velodyne/Intensity Calibration/velodyne_calibration/VLP-16.yaml" />
+	</include>
+
+</launch>
