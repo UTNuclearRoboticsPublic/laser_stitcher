@@ -72,6 +72,8 @@ ServoManagerPositional::ServoManagerPositional()
 //   Ouput parameters are clouds and cloud names  
 bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Request &req, laser_stitcher::stationary_scan::Response &res)
 { 	
+	nh_.setParam("arbotix/joints/servo_pan_joint/max_speed", pan_speed_returning_);
+	
 	// Declare the positional command to the servos 
 	std_msgs::Float64 pos_cmd;
 	pos_cmd.data = 0.0;	
@@ -117,7 +119,6 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 			}
 			ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a motion command to reach start pose of " << pos_cmd.data << ". Current position: " << pan_angle_);
 		}
-		nh_.setParam("arbotix/joints/servo_pan_joint/max_speed", pan_speed_);
 	}
 
 	min_angle_ = req.min_angle;
@@ -158,6 +159,8 @@ bool ServoManagerPositional::stationaryScan(laser_stitcher::stationary_scan::Req
 		ROS_DEBUG_STREAM("[ServoManagerPositional] Sent a counterclockwise motion command. Current position: " << pan_angle_);
 
 	}
+
+	nh_.setParam("arbotix/joints/servo_pan_joint/max_speed", pan_speed_);
 	
 	if(!scan_while_returning_)
 	{

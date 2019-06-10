@@ -16,6 +16,7 @@ find_package(catkin REQUIRED
 	pcl_conversions
 	pcl_ros
 	message_generation
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions
@@ -61,6 +62,7 @@ find_package(catkin REQUIRED
  add_service_files(
    FILES
    stationary_scan.srv
+   intensity_calibration_service.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -107,8 +109,8 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  
-#  CATKIN_DEPENDS other_catkin_pkg
+  LIBRARIES intensity_calibration
+ CATKIN_DEPENDS cv_bridge
 #  CATKIN_DEPENDS  
 )
 
@@ -247,6 +249,48 @@ target_link_libraries(
   laser_to_csv_averaged 
   ${catkin_LIBRARIES}
 )
+
+
+add_executable(hokuyo_intensity_mapping src/hokuyo_intensity_mapping.cpp )
+add_dependencies(
+   hokuyo_intensity_mapping 
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  hokuyo_intensity_mapping
+  ${catkin_LIBRARIES}
+)
+
+
+add_executable(rgbd_cloud_aggregator src/rgbd_cloud_aggregator.cpp )
+add_dependencies(
+   rgbd_cloud_aggregator
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  rgbd_cloud_aggregator
+  ${catkin_LIBRARIES}
+)
+
+add_executable(intensity_calibration_server src/intensity_calibration_server.cpp )
+add_dependencies(
+   intensity_calibration_server
+  ${laser_stitcher_EXPORTED_TARGETS}
+   ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(
+  intensity_calibration_server intensity_calibration
+  ${catkin_LIBRARIES}
+)
+
+
+
+add_library(intensity_calibration src/intensity_calibration.cpp)
+add_dependencies(intensity_calibration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

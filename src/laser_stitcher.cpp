@@ -18,7 +18,12 @@ LaserStitcher::LaserStitcher()
 	if( !nh_.param<std::string>("laser_stitcher/scanning_state_topic", scanning_state_topic, "laser_stitcher/scanning_state") )
 		ROS_WARN_STREAM("[LaserStitcher] Failed to get scanning_state topic from parameter server - defaulting to " << scanning_state_topic << ".");
 	// Create Subscribers
-	scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 1, &LaserStitcher::laserCallback, this);
+	bool laser_input;
+	nh_.param<bool>("laser_stitcher/laser_input", laser_input, true);
+	if(laser_input)
+		scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>(laser_topic, 1, &LaserStitcher::laserCallback, this);
+	else
+		scan_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(laser_topic, 1, &LaserStitcher::pointCloudCallback, this);
 	finish_sub_ = nh_.subscribe<std_msgs::Bool>(scanning_state_topic, 20, &LaserStitcher::setScanningState, this);
 	reset_sub_ = nh_.subscribe<std_msgs::Bool>(reset_topic, 20, &LaserStitcher::resetCloud, this);
 	
@@ -94,6 +99,50 @@ void LaserStitcher::laserCallback(sensor_msgs::LaserScan scan_in)
 		  	const sensor_msgs::PointCloud2 previous_cloud_state = current_scan_;
 		    pcl::concatenatePointCloud(previous_cloud_state, new_planar_cloud, current_scan_);
 		    ROS_DEBUG_STREAM("[LaserStitcher] Laser scan stitched! Publishing a partial scan on topic " << partial_scan_pub_.getTopic() << " with size " << current_scan_.width*current_scan_.height);
+		    partial_scan_pub_.publish(current_scan_);
+	    }
+	    else 
+	    	ros::Duration(wait_time_if_not_running_).sleep();
+	}
+	catch(tf2::TransformException e)
+	{
+		ROS_ERROR_THROTTLE(2, "[LaserStitcher] %s", e.what());
+	}
+
+}
+
+/* ------------------------- Point Cloud Callback -------------------------
+  Primary callback node - receives PointCloud2 data from external source
+*/
+void LaserStitcher::pointCloudCallback(sensor_msgs::PointCloud2 cloud_in)
+{ 
+	// Scale intensities based on distance, if necessary
+	//   Return intensities decrease as some function of distance regardless of surface type and angle
+	//   Here is a simple implementation to scale intensities by some power of their distance (specified in parameter yaml file) 
+	if(scale_intensities_)
+	{
+		//for(int i=0; i<scan_in.ranges.size(); i++)
+		//	scan_in.intensities[i] *= pow(cloud_in.points[i],intensity_scale_exp_);
+	}  
+	// Actual Transform and Cloud Building
+	//   Try/Catch to prevent crashing on TF exception
+	try{
+		if(is_running_)
+		{
+			if(!listener_.waitForTransform(cloud_in.header.frame_id, output_frame_, cloud_in.header.stamp + ros::Duration().fromSec(0 /*cloud_in.ranges.size()*cloud_in.time_increment*/), ros::Duration(1.0)))
+			{
+				ROS_ERROR_STREAM("[LaserStitcher] Received laser_scan callback, but failed to get transform between output frame " << output_frame_ << " and scan frame " << cloud_in.header.frame_id);
+		  		return;
+		  	}
+
+		  	sensor_msgs::PointCloud2 transformed_cloud;
+		  	pcl_ros::transformPointCloud (output_frame_, cloud_in, transformed_cloud, listener_);    
+		  	planar_cloud_pub_.publish(cloud_in);
+		  	ROS_DEBUG_STREAM("[LaserStitcher] Point cloud caught! Publishing a snapshot cloud on topic " << planar_cloud_pub_.getTopic() << " with size " << transformed_cloud.width*transformed_cloud.height);
+
+		  	const sensor_msgs::PointCloud2 previous_cloud_state = current_scan_;
+		    pcl::concatenatePointCloud(previous_cloud_state, transformed_cloud, current_scan_);
+		    ROS_DEBUG_STREAM("[LaserStitcher] Point cloud stitched! Publishing a partial cloud on topic " << partial_scan_pub_.getTopic() << " with size " << current_scan_.width*current_scan_.height);
 		    partial_scan_pub_.publish(current_scan_);
 	    }
 	    else 

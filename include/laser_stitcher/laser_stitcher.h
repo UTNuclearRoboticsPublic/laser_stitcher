@@ -47,6 +47,7 @@ private:
 	tf::StampedTransform last_transform_;
 
 	void laserCallback(sensor_msgs::LaserScan scan_in);
+	void pointCloudCallback(sensor_msgs::PointCloud2 cloud_in);
 	void setScanningState(const std_msgs::Bool::ConstPtr& shut_down);
 	void resetCloud(const std_msgs::Bool::ConstPtr& placeholder);
 	bool lidarHasMoved(std::string);

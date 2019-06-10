@@ -37,7 +37,7 @@
 
   <node
     name    = "lidar_offset_corrector"   pkg = "tf"   type = "static_transform_publisher"
-        args    = "0 0 0    -0.013 0.028 0.0   /hokuyo_lidar_base /hokuyo_lidar    100"
+        args    = "0 0 0    0.007 0.015 0.0   /hokuyo_lidar_base /hokuyo_lidar    100"
   > </node>
 
   <node

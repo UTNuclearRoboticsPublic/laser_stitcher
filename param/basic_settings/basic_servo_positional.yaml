@@ -24,11 +24,11 @@ servo_manager_positional:
   lidar_frame:            hokuyo_lidar_base
   service_name:           laser_stitcher/stationary_scan
   output_cloud_topic:     laser_stitcher/output_cloud_list
-  min_angle:              -1.57
-  max_angle:              1.57
-  pan_speed:              5
-  pan_speed_returning:    5
-  fixed_start_pose:       true
-  start_pose:             [ -1.57 ]
+  min_angle:              -0.3
+  max_angle:              3.1
+  pan_speed:              15
+  pan_speed_returning:    15
+  fixed_start_pose:       false
+  start_pose:             [ -1.55 ]
   scan_while_returning:   true
   wait_time:              0.03

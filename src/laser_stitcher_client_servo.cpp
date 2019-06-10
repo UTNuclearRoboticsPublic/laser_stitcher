@@ -28,7 +28,9 @@ int main(int argc, char** argv)
 		scan_srv.request.external_angle_sensing = false;
 
 		ros::Duration(2.0).sleep();
-	
+
+		ROS_INFO_STREAM("output message...");
+		ros::Duration(2.0).sleep();
 		if( ! scanning_client.call(scan_srv) )
 			ROS_WARN_STREAM("[LaserStitcherClient] Scanning service call failed - prob not up yet");
 		else
