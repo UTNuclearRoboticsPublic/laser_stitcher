@@ -17,7 +17,6 @@ private:
 
 LIDARFramePub::LIDARFramePub()
 {
-<<<<<<< HEAD
 	ros::NodeHandle nh;
   ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/arbotix_joint_states", 1, &LIDARFramePub::jointstateCallback, this);
 
@@ -29,7 +28,6 @@ LIDARFramePub::LIDARFramePub()
   lidar_transform_.transform.translation.x = 0.02;
   lidar_transform_.transform.translation.y = 0.0;
   lidar_transform_.transform.translation.z = .30;
-=======
 	//   Populate header fields of transform
     lidar_transform_.header.frame_id = "arbotix_base_frame";
   	lidar_transform_.child_frame_id = "hokuyo_lidar_base";
@@ -37,10 +35,6 @@ LIDARFramePub::LIDARFramePub()
   	lidar_transform_.transform.translation.x = 0.0;
   	lidar_transform_.transform.translation.y = 0.0;
   	lidar_transform_.transform.translation.z = 0.1;
-
-  	ros::NodeHandle nh;
-	ros::Subscriber jointstate_sub = nh.subscribe<sensor_msgs::JointState>("/arbotix_joint_states", 1, &LIDARFramePub::jointstateCallback, this);
->>>>>>> 43ecaee015bad7479c501076f21fff49722ec6f7
 
 	ros::spin();
 }
